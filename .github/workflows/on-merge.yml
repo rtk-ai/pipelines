@@ -11,6 +11,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   on-merge:
+    # Silent until the repo variable CRAWL_ENABLED=true (bot App + tokens configured).
+    if: vars.CRAWL_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
       - id: app

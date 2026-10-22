@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "description": "Review queue and allowlist for community RTK pipelines listed on https://www.rtk-ai.app/pipelines/",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test",
     "precheck": "node scripts/precheck.mjs",
     "report": "node scripts/report.mjs",
     "crawl": "node scripts/crawl.mjs",

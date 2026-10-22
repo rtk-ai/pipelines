@@ -1,7 +1,8 @@
 name: validate-pr
 on:
+  # Every PR: the check is required on main, so it must always report. The
+  # script exits 0 immediately when no snapshot or revocation changed.
   pull_request:
-    paths: ["approved/**", "revoked.toml"]
 permissions:
   contents: read
 jobs:
