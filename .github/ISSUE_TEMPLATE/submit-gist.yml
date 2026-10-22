@@ -1,0 +1,33 @@
+name: Submit a pipeline published as a gist
+description: Pipelines published as GitHub repos (rtk pipeline share publish) are found automatically. Gists are not — submit one here.
+title: "gist: <one-line description>"
+labels: ["submit-gist"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The bot pre-checks the gist with the stock `rtk` binary and opens a review PR. A maintainer merging that PR lists it on https://www.rtk-ai.app/pipelines/ pinned to the gist revision. Nothing is listed without a human review.
+  - type: input
+    id: gist
+    attributes:
+      label: Gist URL
+      description: "The gist page, e.g. https://gist.github.com/you/0123456789abcdef0123456789abcdef — it must contain a `pipeline.toml` (or a single `.toml` file)."
+      placeholder: https://gist.github.com/you/…
+    validations:
+      required: true
+  - type: input
+    id: description
+    attributes:
+      label: One-line description
+      description: What the pipeline does, in plain words. Shown to reviewers only.
+    validations:
+      required: true
+  - type: checkboxes
+    id: own
+    attributes:
+      label: Ownership
+      options:
+        - label: I own this gist (the bot verifies the gist owner matches this issue's author).
+          required: true
+        - label: The file contains no secrets, no `api_key_command`, and no `file =` directives.
+          required: true

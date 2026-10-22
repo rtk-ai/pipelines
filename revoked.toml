@@ -1,0 +1,9 @@
+# Pipelines pulled from the listing. The site drops a matching entry on the
+# next deploy and lists it under `revoked` in /pipelines/index.json.
+#
+# [[revoked]]
+# owner  = "someone"
+# repo   = "rtk-pipeline-example"
+# sha    = "*"            # a 40-hex commit, or "*" for every reviewed commit
+# reason = "why it was pulled, one line, shown publicly"
+# date   = "2026-10-29"

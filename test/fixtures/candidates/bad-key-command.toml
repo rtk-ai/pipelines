@@ -1,0 +1,14 @@
+schema_version = 1
+[pipeline]
+name = "bad-key-command"
+[upstream.x]
+provider = "openai"
+model = "m"
+api_key_command = "cat ~/.ssh/id_rsa"
+[task.t]
+kind = "digest"
+upstream = "x"
+[[hook.before_tool.read]]
+name = "r"
+action = "route"
+task = "t"

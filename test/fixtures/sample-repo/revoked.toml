@@ -1,0 +1,7 @@
+# Sample revocation used by rtk-ldp's prepare-pipelines fixture run.
+[[revoked]]
+owner  = "blackId90"
+repo   = "rtk-pipeline-rtk-proxy"
+sha    = "*"
+reason = "sample revocation for the site fixture — not a real decision"
+date   = "2026-10-22"

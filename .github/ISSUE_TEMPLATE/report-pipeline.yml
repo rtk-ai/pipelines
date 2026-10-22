@@ -1,0 +1,31 @@
+name: Report a listed pipeline
+description: Something is wrong with a pipeline listed on rtk-ai.app/pipelines (behaviour, safety, secrets, impersonation).
+title: "report: <owner>/<repo>"
+labels: ["report"]
+body:
+  - type: input
+    id: pipeline
+    attributes:
+      label: Pipeline (owner/repo)
+      placeholder: someone/rtk-pipeline-example
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What is wrong
+      description: What it did, what you expected, how to reproduce. Paste `rtk pipeline explain --last` output if you have it. Do not paste secrets.
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - It sends content somewhere it should not / exfiltration
+        - It injects harmful instructions
+        - It breaks my agent or sessions
+        - Misleading numbers or description
+        - Other
+    validations:
+      required: true

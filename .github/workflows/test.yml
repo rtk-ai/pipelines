@@ -1,0 +1,39 @@
+name: test
+on:
+  pull_request:
+    paths-ignore: ["approved/**", "revoked.toml"]
+  push:
+    branches: [main]
+    paths-ignore: ["approved/**", "revoked.toml", "state/**"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Cache pinned rtk
+        uses: actions/cache@v4
+        with:
+          path: .cache/rtk
+          key: rtk-${{ hashFiles('rtk.pin') }}-${{ runner.os }}-${{ runner.arch }}
+      - name: Pinned rtk
+        id: rtk
+        run: echo "bin=$(bash scripts/rtk-pinned.sh)" >> "$GITHUB_OUTPUT"
+      - name: Unit + fixture tests (with the pinned binary)
+        run: pnpm test
+        env:
+          RTK_BIN: ${{ steps.rtk.outputs.bin }}
+      - name: Precheck every fixture end to end
+        run: |
+          for f in test/fixtures/candidates/*.toml; do
+            node scripts/precheck.mjs "$f" --key "tester/rtk-pipeline-$(basename "$f" .toml)@0123456789abcdef0123456789abcdef01234567" --out /tmp/r.json
+          done
+        env:
+          RTK_BIN: ${{ steps.rtk.outputs.bin }}

@@ -1,0 +1,31 @@
+method               kind      lossy  recovery   cost     site
+ansi                 transform false  none       instant  hook/proxy
+toon                 transform true   recall     fast     hook/proxy
+minify-json          transform true   recall     fast     hook/proxy
+web-md               transform false  none       fast     hook/proxy
+truncate             transform true   recall     instant  hook/proxy
+grep-group           transform true   recall     instant  hook/proxy
+base64-elide         transform true   none       instant  hook/proxy
+lockfile             transform true   none       fast     hook/proxy
+md-slim              transform true   none       instant  hook/proxy
+progress             transform true   recall     instant  hook/proxy
+dedup                transform false  none       instant  hook/proxy
+cap                  transform true   recall     instant  hook/proxy
+strip-line-numbers   transform true   none       instant  hook/proxy
+shape                transform true   recall     fast     hook/proxy
+rle                  transform true   recall     fast     hook/proxy
+ccr                  transform true   retrievetool slow     proxy
+cache-align          transform false  none       instant  proxy
+retire-pointer       transform true   pointer    fast     proxy
+
+chains (composites, usable anywhere a method is):
+  term       = [ansi, progress, dedup, base64-elide, cap]
+  json       = [base64-elide, toon]
+  web        = [ansi, base64-elide, web-md, toon, md-slim]
+  matches    = [grep-group]
+
+directives:
+  terse-output
+  rtk-awareness (levels: default | high | full)
+
+reserved names: unicode, ipynb-strip, tree-sitter, pixel, classify, route, terse-prose, compact-tools, redact

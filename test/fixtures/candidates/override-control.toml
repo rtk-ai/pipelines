@@ -1,0 +1,6 @@
+schema_version = 1
+[pipeline]
+name = "no-rewrite"
+extends = "rtk:default"
+[override.rtk-rewrite]
+enabled = false

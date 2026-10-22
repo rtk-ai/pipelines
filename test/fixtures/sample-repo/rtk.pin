@@ -1,0 +1,11 @@
+{
+  "version": "v1.0.1",
+  "asset": "rtk-x86_64-unknown-linux-musl.tar.gz",
+  "sha256": "5b919c3bccb799b67a61866d0e617410a4fcdf173e2614440e59de2fa2003436",
+  "alt": {
+    "aarch64-apple-darwin": {
+      "asset": "rtk-aarch64-apple-darwin.tar.gz",
+      "sha256": "4aae2f60cfc49c9e81b8c8c57020aa0cb824da608c78b4f0cf5c0988e19e824e"
+    }
+  }
+}

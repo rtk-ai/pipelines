@@ -1,0 +1,9 @@
+# A review from this team is required (branch ruleset) before anything under
+# approved/ — the allowlist the site renders — can merge.
+/approved/        @rtk-ai/pipeline-maintainers
+/revoked.toml     @rtk-ai/pipeline-maintainers
+/blocklist.toml   @rtk-ai/pipeline-maintainers
+/reserved.toml    @rtk-ai/pipeline-maintainers
+/rtk.pin          @rtk-ai/pipeline-maintainers
+/scripts/         @rtk-ai/pipeline-maintainers
+/.github/         @rtk-ai/pipeline-maintainers

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue in rtk itself
+    url: https://github.com/rtk-ai/rtk/security/policy
+    about: Vulnerabilities in the rtk binary go through the rtk security policy, not here.

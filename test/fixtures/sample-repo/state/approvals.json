@@ -1,0 +1,16 @@
+{
+  "aeppling/rtk-pipeline-laya-delegate@53ec1322eb94c1013df491bdcaa453ad27e624f6": {
+    "approved_at": "2026-10-22T18:00:00Z",
+    "approved_by": "maintainer",
+    "discussion_url": "https://github.com/rtk-ai/pipelines/discussions/1",
+    "pr": 1
+  },
+  "aeppling/rtk-pipeline-laya-delegate": { "discussion_url": "https://github.com/rtk-ai/pipelines/discussions/1" },
+  "aiKrice/rtk-pipeline-rtk-proxy@f9d0258b7fd666f824b270773771f85fb5912464": {
+    "approved_at": "2026-10-21T09:30:00Z",
+    "approved_by": "maintainer",
+    "discussion_url": "https://github.com/rtk-ai/pipelines/discussions/2",
+    "pr": 2
+  },
+  "aiKrice/rtk-pipeline-rtk-proxy": { "discussion_url": "https://github.com/rtk-ai/pipelines/discussions/2" }
+}

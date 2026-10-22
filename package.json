@@ -1,0 +1,21 @@
+{
+  "name": "rtk-pipelines",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Review queue and allowlist for community RTK pipelines listed on https://www.rtk-ai.app/pipelines/",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test test/",
+    "precheck": "node scripts/precheck.mjs",
+    "report": "node scripts/report.mjs",
+    "crawl": "node scripts/crawl.mjs",
+    "validate-pr": "node scripts/validate-pr.mjs",
+    "on-merge": "node scripts/on-merge.mjs",
+    "recheck": "node scripts/recheck.mjs",
+    "rtk": "bash scripts/rtk-pinned.sh"
+  },
+  "dependencies": {
+    "smol-toml": "^1.9.1"
+  }
+}

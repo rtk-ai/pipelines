@@ -1,0 +1,30 @@
+name: recheck
+on:
+  schedule:
+    - cron: "41 7 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  recheck:
+    if: vars.CRAWL_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .cache/rtk
+          key: rtk-${{ hashFiles('rtk.pin') }}-${{ runner.os }}-${{ runner.arch }}
+      - id: rtk
+        run: echo "bin=$(bash scripts/rtk-pinned.sh)" >> "$GITHUB_OUTPUT"
+      - run: node scripts/recheck.mjs
+        env:
+          RTK_BIN: ${{ steps.rtk.outputs.bin }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}

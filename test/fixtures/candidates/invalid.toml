@@ -1,0 +1,6 @@
+schema_version = 1
+[pipeline]
+name = "invalid"
+[[hook.before_tool.shell]]
+name = "x"
+action = "nonsense"

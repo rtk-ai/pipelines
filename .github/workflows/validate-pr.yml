@@ -1,0 +1,30 @@
+name: validate-pr
+on:
+  pull_request:
+    paths: ["approved/**", "revoked.toml"]
+permissions:
+  contents: read
+jobs:
+  validate-pr:
+    name: validate-pr
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .cache/rtk
+          key: rtk-${{ hashFiles('rtk.pin') }}-${{ runner.os }}-${{ runner.arch }}
+      - id: rtk
+        run: echo "bin=$(bash scripts/rtk-pinned.sh)" >> "$GITHUB_OUTPUT"
+      - name: Snapshots byte-identical to upstream, precheck still passes, schemas valid
+        run: node scripts/validate-pr.mjs
+        env:
+          RTK_BIN: ${{ steps.rtk.outputs.bin }}
+          BASE_REF: origin/${{ github.base_ref }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

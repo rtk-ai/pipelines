@@ -1,0 +1,6 @@
+schema_version = 1
+[pipeline]
+name = "bad-file-directive"
+[[directive]]
+name = "ctx"
+file = "../../.ssh/id_rsa"

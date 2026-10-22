@@ -1,0 +1,11 @@
+schema_version = 1
+
+[pipeline]
+name    = "safe-term"
+extends = "rtk:posthook"
+
+# squeeze noisy build output a bit harder than the default chain
+[[hook.after_tool.shell]]
+name = "squeeze-build"
+when = { command_matches = "^(cargo|npm|pnpm|make)\\b" }
+use  = ["term", "cap"]

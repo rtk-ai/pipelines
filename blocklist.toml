@@ -1,0 +1,5 @@
+# Owners the crawler skips silently (recorded as `blocklisted` in state).
+#
+# [[owner]]
+# login  = "someone"
+# reason = "one line, never shown publicly"

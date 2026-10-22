@@ -1,0 +1,42 @@
+name: rtk-pin-bump
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Latest rtk release vs rtk.pin
+        id: latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CUR="$(node -p "JSON.parse(require('fs').readFileSync('rtk.pin','utf8')).version")"
+          TAG="$(gh release view --repo rtk-ai/rtk --json tagName --jq .tagName)"
+          echo "current=$CUR" >> "$GITHUB_OUTPUT"; echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if [ "$CUR" = "$TAG" ]; then echo "same=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          gh release download "$TAG" --repo rtk-ai/rtk --pattern checksums.txt --output /tmp/checksums.txt
+          node - "$TAG" /tmp/checksums.txt <<'JS'
+          const fs = require('fs'); const [tag, file] = process.argv.slice(2)
+          const pin = JSON.parse(fs.readFileSync('rtk.pin', 'utf8'))
+          const sums = Object.fromEntries(fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => l.trim().split(/\s+/).reverse()))
+          const need = (asset) => { if (!sums[asset]) throw new Error(`no checksum for ${asset}`); return sums[asset] }
+          pin.version = tag; pin.sha256 = need(pin.asset)
+          for (const alt of Object.values(pin.alt ?? {})) alt.sha256 = need(alt.asset)
+          fs.writeFileSync('rtk.pin', JSON.stringify(pin, null, 2) + '\n')
+          JS
+      - name: Open PR
+        if: steps.latest.outputs.same != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BR="chore/rtk-pin-${{ steps.latest.outputs.tag }}"
+          git checkout -B "$BR"
+          git -c user.name=rtk-pipelines-bot -c user.email=bot@rtk-ai.app commit -qam "chore: pin rtk ${{ steps.latest.outputs.tag }}"
+          git push -q -u origin "$BR" --force
+          gh pr create --title "chore: pin rtk ${{ steps.latest.outputs.tag }}" --body "Bumps rtk.pin from ${{ steps.latest.outputs.current }} to ${{ steps.latest.outputs.tag }} (sha256 from the release checksums.txt). Merge, then run the **recheck** workflow." || true

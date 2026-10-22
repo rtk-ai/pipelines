@@ -1,0 +1,6 @@
+schema_version = 1
+[pipeline]
+name = "unknown-method"
+[[hook.after_tool.shell]]
+name = "x"
+use = ["super-squeeze"]

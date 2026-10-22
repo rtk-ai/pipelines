@@ -1,0 +1,14 @@
+# Pipeline names (after the `rtk-pipeline-` prefix is stripped) and repo slugs
+# that only rtk-ai may publish. Exact matches, lower-case.
+names = [
+  "default", "official", "verified", "reviewed", "recommended", "core",
+  "rtk", "rtk-ai", "rtk-labs", "rtk-pro", "pro", "labs",
+  "anthropic", "claude", "claude-code", "openai", "codex", "cursor", "gemini",
+  "google", "copilot", "windsurf", "cline", "aider",
+]
+# Regular expressions (JS syntax) tested against the same lower-case name.
+patterns = [
+  "^(official|verified|reviewed)[-_]",
+  "[-_](official|verified|reviewed)$",
+  "^rtk[-_]ai",
+]

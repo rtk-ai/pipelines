@@ -1,0 +1,70 @@
+name: crawl
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Pre-check and print, but open nothing"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+concurrency:
+  group: crawl
+  cancel-in-progress: false
+jobs:
+  crawl:
+    # Armed by the repo variable CRAWL_ENABLED=true (schedule stays silent until then).
+    if: vars.CRAWL_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bot token (GitHub App, so the PRs it opens trigger validate-pr)
+        id: app
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+      - name: State branch worktree
+        run: |
+          git fetch origin state:refs/remotes/origin/state || true
+          if git show-ref --quiet refs/remotes/origin/state; then
+            git worktree add .state origin/state
+          else
+            git worktree add --detach .state && (cd .state && git checkout -q --orphan state && git rm -rfq . >/dev/null 2>&1 || true)
+          fi
+          mkdir -p .state/state && [ -f .state/state/seen.json ] || echo '{}' > .state/state/seen.json
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .cache/rtk
+          key: rtk-${{ hashFiles('rtk.pin') }}-${{ runner.os }}-${{ runner.arch }}
+      - id: rtk
+        run: echo "bin=$(bash scripts/rtk-pinned.sh)" >> "$GITHUB_OUTPUT"
+      - name: Crawl, pre-check, open review PRs
+        run: node scripts/crawl.mjs
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          RTK_BIN: ${{ steps.rtk.outputs.bin }}
+          REPO: ${{ github.repository }}
+          STATE_DIR: ${{ github.workspace }}/.state
+          DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
+          MAX_PRS: "10"
+      - name: Persist crawl state
+        if: inputs.dry_run != true
+        run: |
+          cd .state
+          git add -A state
+          if git diff --cached --quiet; then echo "state unchanged"; exit 0; fi
+          git -c user.name=rtk-pipelines-bot -c user.email=bot@rtk-ai.app commit -q -m "crawl: $(date -u +%FT%TZ)"
+          git push -q origin HEAD:state

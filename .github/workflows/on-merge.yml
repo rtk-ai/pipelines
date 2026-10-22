@@ -1,0 +1,52 @@
+name: on-merge
+on:
+  push:
+    branches: [main]
+    paths: ["approved/**", "revoked.toml"]
+permissions:
+  contents: read
+  discussions: write
+concurrency:
+  group: on-merge
+  cancel-in-progress: false
+jobs:
+  on-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+      - name: State branch worktree
+        run: |
+          git fetch origin state:refs/remotes/origin/state
+          git worktree add .state origin/state
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Discussion, approval metadata, Discord, site redeploy
+        run: node scripts/on-merge.mjs
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          REPO: ${{ github.repository }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          PUSHED_AT: ${{ github.event.head_commit.timestamp }}
+          STATE_DIR: ${{ github.workspace }}/.state
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          LDP_DISPATCH_TOKEN: ${{ secrets.LDP_DISPATCH_TOKEN }}
+      - name: Persist approval metadata
+        run: |
+          cd .state
+          git add -A state
+          if git diff --cached --quiet; then exit 0; fi
+          git -c user.name=rtk-pipelines-bot -c user.email=bot@rtk-ai.app commit -q -m "approvals: ${GITHUB_SHA::7}"
+          git push -q origin HEAD:state
