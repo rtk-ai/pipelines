@@ -1,0 +1,318 @@
+{
+  "rtk": "v1.0.1",
+  "key": "aeppling/rtk-pipeline-laya-tiered@26b8683d0eeffde220a8d25a60b9654f752c7eb4",
+  "checked_at": "2026-10-23T14:01:48.331Z",
+  "name": "laya-tiered",
+  "tier": "text",
+  "label": "needs-reading",
+  "size_bytes": 9251,
+  "extends": [
+    "rtk:posthook",
+    "rtk:delegate-reads"
+  ],
+  "rules": [
+    {
+      "position": "hook.before_tool.read",
+      "index": 0,
+      "name": "answer-big-reads",
+      "action": "route",
+      "task": "bulk-read",
+      "upstream": null,
+      "use": [],
+      "when": {
+        "file_lines_gt": 350,
+        "whole_file": true,
+        "score.need_lte": 0.65
+      },
+      "any": [],
+      "mode": "answer",
+      "enabled": true,
+      "shadow": false,
+      "continue": false,
+      "has_message": false
+    },
+    {
+      "position": "hook.before_tool.read",
+      "index": 1,
+      "name": "delegate-investigation-read",
+      "action": "route",
+      "task": "bulk-read",
+      "upstream": null,
+      "use": [],
+      "when": {
+        "recent_calls_matches": "^(Bash|Read|Grep|Glob) [^|]*((\\|\\||\\| ?[^A-Z |])[^|]*)*( \\| (Bash|Read|Grep|Glob) [^|]*((\\|\\||\\| ?[^A-Z |])[^|]*)*)?$",
+        "class.kind_in": [
+          "write",
+          "data"
+        ]
+      },
+      "any": [],
+      "mode": "suggest",
+      "enabled": true,
+      "shadow": false,
+      "continue": false,
+      "has_message": true
+    },
+    {
+      "position": "hook.before_tool.shell",
+      "index": 0,
+      "name": "delegate-investigation",
+      "action": "route",
+      "task": "investigate",
+      "upstream": null,
+      "use": [],
+      "when": {
+        "command_matches": "^(cd [^;&]+(;|&&) *)?(ls|cat|head|tail|grep|rg|find|tree|pwd|echo|which|wc|file|stat|du|for|while|awk|nl|xxd|git|sed -n)\\b",
+        "recent_calls_matches": "^(Bash|Read|Grep|Glob) [^|]*((\\|\\||\\| ?[^A-Z |])[^|]*)*( \\| (Bash|Read|Grep|Glob) [^|]*((\\|\\||\\| ?[^A-Z |])[^|]*)*)?$",
+        "class.kind_in": [
+          "write",
+          "data"
+        ]
+      },
+      "any": [],
+      "mode": "suggest",
+      "enabled": true,
+      "shadow": false,
+      "continue": false,
+      "has_message": true
+    },
+    {
+      "position": "hook.after_tool.shell",
+      "index": 0,
+      "name": "keep-ranged-reads",
+      "action": null,
+      "task": null,
+      "upstream": null,
+      "use": [
+        "ansi"
+      ],
+      "when": {
+        "command_matches": "\\bsed -n *'?[0-9]+,[0-9]+p|\\b(grep|egrep|rg)\\b[^|;&]* -[A-Za-z]*n",
+        "is_rtk_command": false
+      },
+      "any": [],
+      "mode": null,
+      "enabled": true,
+      "shadow": false,
+      "continue": false,
+      "has_message": false
+    }
+  ],
+  "rule_summary": [
+    {
+      "position": "before read",
+      "does": "delegate -> bulk-read",
+      "when": "file_lines_gt=350, whole_file=true, score.need_lte=0.65"
+    },
+    {
+      "position": "before read",
+      "does": "delegate -> bulk-read",
+      "when": "recent_calls_matches=\"^(Bash|Read|Grep|Glob) [^|]*((\\\\|\\\\||\\\\| ?[^A-Z |])[^|]*)*( \\\\| (Bash|Read|Grep|Glob) [^|]*((\\\\|\\\\||\\\\| ?[^A-Z |])[^|]*)*)?$\", class.kind_in=[\"write\", \"data\"]"
+    },
+    {
+      "position": "before shell",
+      "does": "delegate -> investigate",
+      "when": "command_matches=\"^(cd [^;&]+(;|&&) *)?(ls|cat|head|tail|grep|rg|find|tree|pwd|echo|which|wc|file|stat|du|for|while|awk|nl|xxd|git|sed -n)\\\\b\", recent_calls_matches=\"^(Bash|Read|Grep|Glob) [^|]*((\\\\|\\\\||\\\\| ?[^A-Z |])[^|]*)*( \\\\| (Bash|Read|Grep|Glob) [^|]*((\\\\|\\\\||\\\\| ?[^A-Z |])[^|]*)*)?$\", class.kind_in=[\"write\", \"data\"]"
+    },
+    {
+      "position": "after shell",
+      "does": "compress [ansi]",
+      "when": "command_matches=\"\\\\bsed -n *'?[0-9]+,[0-9]+p|\\\\b(grep|egrep|rg)\\\\b[^|;&]* -[A-Za-z]*n\", is_rtk_command=false"
+    }
+  ],
+  "directives": [
+    {
+      "index": 0,
+      "name": "tiered-delegation",
+      "use": null,
+      "file": null,
+      "channel": null,
+      "enabled": true,
+      "has_text": true
+    }
+  ],
+  "egress": [
+    {
+      "name": "judge",
+      "provider": "laya",
+      "model": "laya",
+      "base_url": "http://127.0.0.1:41733/v1/systemone",
+      "host": "127.0.0.1",
+      "scheme": "http",
+      "local": true,
+      "api_key_env": "RTK_LAYA_TOKEN",
+      "canonical_env": null,
+      "custom": false,
+      "noncanonical_env": true,
+      "api_key_command": false,
+      "timeout_secs": 60,
+      "unknown_keys": []
+    },
+    {
+      "name": "haiku",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5",
+      "base_url": null,
+      "host": null,
+      "scheme": null,
+      "local": false,
+      "api_key_env": null,
+      "canonical_env": "ANTHROPIC_API_KEY",
+      "custom": false,
+      "noncanonical_env": false,
+      "api_key_command": false,
+      "timeout_secs": 90,
+      "unknown_keys": []
+    }
+  ],
+  "env_vars": [
+    "RTK_LAYA_TOKEN",
+    "ANTHROPIC_API_KEY"
+  ],
+  "tasks": [
+    {
+      "name": "investigate",
+      "kind": "digest",
+      "upstream": "haiku",
+      "context": true,
+      "has_instructions": false,
+      "has_prompt": false
+    },
+    {
+      "name": "bulk-read",
+      "kind": "summarize",
+      "upstream": "haiku",
+      "context": true,
+      "has_instructions": true,
+      "has_prompt": false
+    }
+  ],
+  "classifiers": [
+    {
+      "name": "need",
+      "question": "score",
+      "upstream": "judge",
+      "labels": [],
+      "rubric_len": 3
+    },
+    {
+      "name": "kind",
+      "question": "choice",
+      "upstream": "judge",
+      "labels": [
+        "bug",
+        "setup",
+        "write",
+        "data"
+      ],
+      "rubric_len": 0
+    }
+  ],
+  "text_blocks": [
+    {
+      "kind": "directive.text",
+      "owner": "tiered-delegation",
+      "chars": 828,
+      "sha256": "7222b0083b3e2442999622a5f1124162db35546e9cd821f1c179cf6507b5b913",
+      "text": "When RTK asks you to hand an investigation to the Explore sub-agent, call it on the haiku model (Agent tool: subagent_type \"Explore\", model \"haiku\") with one precise question built from the task, and ask for a compact report: findings first, then only the file paths, line numbers and exact lines you will need, never whole files. Then do not write the code yourself: hand the implementation to a general-purpose sub-agent on the sonnet model (Agent tool: subagent_type \"general-purpose\", model \"sonnet\") with the task, the Explore report and the exact files to create or change — a short brief of what and where, never the code itself — and ask it to run the tests before it reports. Keep for yourself only what needs your judgment: the spec you give it, checking its result against the task, and fixing what its tests missed.\n"
+    },
+    {
+      "kind": "rule.message",
+      "owner": "delegate-investigation-read",
+      "chars": 622,
+      "sha256": "3654af7e9942103f0e8b60d66ececc19ed92378cb56560ae569f62b8266d4f79",
+      "text": "Do not run this search or open these files yourself: hand the investigation to the Explore sub-agent (Agent tool: subagent_type \"Explore\", model \"haiku\") with one precise question, and ask for a compact report: file paths, line numbers and the exact lines you will need, never whole files. Then hand the implementation to a general-purpose sub-agent on the sonnet model (Agent tool: subagent_type \"general-purpose\", model \"sonnet\") with the task, that report and the files to create or change (a short brief: what and where, never the code itself), and ask it to run the tests before it reports. Check its result yourself."
+    },
+    {
+      "kind": "rule.message",
+      "owner": "delegate-investigation",
+      "chars": 622,
+      "sha256": "3654af7e9942103f0e8b60d66ececc19ed92378cb56560ae569f62b8266d4f79",
+      "text": "Do not run this search or open these files yourself: hand the investigation to the Explore sub-agent (Agent tool: subagent_type \"Explore\", model \"haiku\") with one precise question, and ask for a compact report: file paths, line numbers and the exact lines you will need, never whole files. Then hand the implementation to a general-purpose sub-agent on the sonnet model (Agent tool: subagent_type \"general-purpose\", model \"sonnet\") with the task, that report and the files to create or change (a short brief: what and where, never the code itself), and ask it to run the tests before it reports. Check its result yourself."
+    },
+    {
+      "kind": "task.instructions",
+      "owner": "bulk-read",
+      "chars": 717,
+      "sha256": "b3b63a8da3221ef2cbc6759196c59de0802d35a70117f28e3d5867ded45f54a1",
+      "text": "You read a file for a coding agent that will NOT see it, only your reply. First answer what the agent needs for its current step, in a few terse lines, with exact identifiers. Then map the file: one line on what it is; every class, function and method with its exact signature, in file order. Then quote verbatim, grouped under the name of the function that contains them, the lines whose exact text the agent would most need for its step (non-obvious arithmetic, constants, conditions, error handling, config values). Never give line numbers. Never paraphrase code you quote. No advice, no headings. End with exactly: (Exact text: grep -n a quoted line, then Read that file with offset and limit, at most 350 lines.)"
+    },
+    {
+      "kind": "classifier.instructions",
+      "owner": "need",
+      "chars": 73,
+      "sha256": "2eac6bcce36faaf0bd29cfed82ff8d977a6c19cdd1a913a914127ca2a56e962a",
+      "text": "How much of this file's exact text does the agent need for its next step?"
+    },
+    {
+      "kind": "classifier.rubric",
+      "owner": "need",
+      "chars": 75,
+      "sha256": "584516f654364a68b246b41336f6215721229c09ba06937db19a84a004192fbe",
+      "text": "none: a short summary is enough\na few exact lines\nmost of the file verbatim"
+    },
+    {
+      "kind": "classifier.instructions",
+      "owner": "kind",
+      "chars": 38,
+      "sha256": "1afb7ad8bdab57fed4d9f958d574cdc07cec2bd25bfd336a5466f31d94ef78f3",
+      "text": "What kind of work is this coding task?"
+    },
+    {
+      "kind": "classifier.labels",
+      "owner": "kind",
+      "chars": 221,
+      "sha256": "4e8113ebd63f82ffcbe5dd26e56ce3c5ed5638c686f8e7ec16152a03ee2db0d0",
+      "text": "bug: find and fix a bug by reading source code closely\nsetup: understand or repair a build, configuration, dependency or environment\nwrite: write new code, a script or a port\ndata: analyse data or files and report results"
+    }
+  ],
+  "text_chars": 3196,
+  "overrides": [
+    {
+      "target": "shunt-large-read",
+      "keys": [
+        "enabled"
+      ],
+      "target_kind": "rule",
+      "target_builtin": "rtk:delegate-reads",
+      "target_action": "route",
+      "touches_control": true
+    }
+  ],
+  "control_rules": {
+    "deny": 0,
+    "route": 3,
+    "rewrite": 0,
+    "passthrough": 0
+  },
+  "plugins_missing": [],
+  "reserved_methods": [],
+  "hidden_unicode": [],
+  "unknown_positions": [],
+  "warnings": [],
+  "refusals": [],
+  "caps": {
+    "perBlock": 1500,
+    "total": 4000
+  },
+  "toml_sha256": "22c90ddae4de6d7764ee2a22c5f258432f0f32e951c3707079016aae1f098204",
+  "add_exit_code": 0,
+  "add_stdout": "\n┌─ You are installing a third-party pipeline ─────────────────────────────┐\n│ You are responsible for what it does: it can rewrite the commands your  │\n│ agent runs, filter and replace what it reads, inject instructions, and  │\n│ send content to any upstream endpoint it declares.                      │\n│                                                                         │\n│ Review what this one does:                                              │\n└─────────────────────────────────────────────────────────────────────────┘\n\n    4 rule(s), 1 directive(s)\n    extends: rtk:posthook, rtk:delegate-reads\n    methods referenced: ansi\n    control rule: hook.before_tool.read action=route task=bulk-read\n    control rule: hook.before_tool.read action=route task=bulk-read\n    control rule: hook.before_tool.shell action=route task=investigate\n    task `bulk-read` kind=summarize upstream=haiku\n    task `investigate` kind=digest upstream=haiku\n    inline directive — full text:\n    When RTK asks you to hand an investigation to the Explore sub-agent, call it on the haiku model (Agent tool: subagent_type \"Explore\", model \"haiku\") with one precise question built from the task, and ask for a compact report: findings first, then only the file paths, line numbers and exact lines you will need, never whole files. Then do not write the code yourself: hand the implementation to a general-purpose sub-agent on the sonnet model (Agent tool: subagent_type \"general-purpose\", model \"sonnet\") with the task, the Explore report and the exact files to create or change — a short brief of what and where, never the code itself — and ask it to run the tests before it reports. Keep for yourself only what needs your judgment: the spec you give it, checking its result against the task, and fixing what its tests missed.\n    upstream `haiku` -> (provider default)\n    upstream `judge` -> http://127.0.0.1:41733/v1/systemone\n      [warn] sends the value of $RTK_LAYA_TOKEN (and routed content) to that URL\n    override on `shunt-large-read` — replaces these fields verbatim:\n    enabled = false\n\ntrying `laya-tiered` silently — measured on your sessions, applied to nothing.\n  measure:   rtk pipeline eval laya-tiered      (after a few sessions)\n  go live:   rtk pipeline promote laya-tiered\n  discard:   rtk pipeline promote laya-tiered --discard\n",
+  "add_stderr": "",
+  "repo": {
+    "stars": 0,
+    "forks": 0,
+    "parent": null,
+    "is_fork": false,
+    "pushedAt": "2026-10-23T13:56:26Z",
+    "createdAt": "2026-10-23T13:55:57Z",
+    "owner_created_at": "2018-10-09T11:36:52Z",
+    "description": "RTK pipeline · rtk pipeline add github:aeppling/rtk-pipeline-laya-tiered",
+    "default_branch": "main"
+  },
+  "benchmark": null,
+  "self_reported": null,
+  "author_numbers_notes": [
+    "benchmark.toml ignored: [benchmark].notes: over 400 characters"
+  ]
+}
