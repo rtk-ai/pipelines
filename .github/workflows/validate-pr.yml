@@ -1,10 +1,20 @@
 name: validate-pr
 on:
-  # Every PR: the check is required on main, so it must always report. The
+  # pull_request_target: the workflow and the scripts that run are always the
+  # base branch's, never the PR's. The PR is fetched as data and read out of
+  # git; nothing from it is checked out or executed. The job holds only a
+  # read token. The check is required on main, so it must always report; the
   # script exits 0 immediately when no snapshot or revocation changed.
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+  # Transition only: lets the PR that introduces pull_request_target validate
+  # itself (the base branch has no such trigger yet). Removed by the follow-up PR.
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: validate-pr-${{ github.event_name }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 jobs:
   validate-pr:
     name: validate-pr
@@ -12,6 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
+      - name: Fetch the PR head as data (not checked out)
+        if: github.event_name == 'pull_request_target'
+        run: git fetch --no-tags origin "+refs/pull/${{ github.event.pull_request.number }}/head:refs/remotes/pr/head"
       - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
@@ -27,5 +40,6 @@ jobs:
         run: node scripts/validate-pr.mjs
         env:
           RTK_BIN: ${{ steps.rtk.outputs.bin }}
-          BASE_REF: origin/${{ github.base_ref }}
+          BASE_REF: origin/${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event_name == 'pull_request_target' && 'refs/remotes/pr/head' || 'HEAD' }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

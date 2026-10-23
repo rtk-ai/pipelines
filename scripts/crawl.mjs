@@ -14,7 +14,8 @@ import { join, resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
 import { graphql, rest, fetchRaw } from './lib/github.mjs'
-import { assertOwner, assertRepo, assertSha, approvedDir, reviewBranch, short, rawUrl, GIST_ID_RE } from './lib/ids.mjs'
+import { assertOwner, assertRepo, assertSha, approvedDir, reviewBranch, short, rawUrl, benchmarkRawUrl, readmeRawUrl, GIST_ID_RE } from './lib/ids.mjs'
+import { parseBenchmarkToml, parseShareCard, BENCH_MAX_BYTES } from './lib/benchmark.mjs'
 import { loadBlocklist, loadReserved, loadRevoked, listApproved, readSeen, isRevoked } from './lib/policy.mjs'
 import { entryToml } from './lib/entry.mjs'
 import { precheck, loadRtkFacts } from './precheck.mjs'
@@ -91,12 +92,37 @@ function openCandidatePRs() {
   }
 }
 
-function writeSnapshot(dir, { buffer, entry, report }) {
+function writeSnapshot(dir, { buffer, entry, report, benchmarkBuffer }) {
   const base = DRY ? join(ROOT, ".sandbox") : ROOT
   mkdirSync(join(base, dir), { recursive: true })
   writeFileSync(join(base, dir, "pipeline.toml"), buffer)
+  if (benchmarkBuffer) writeFileSync(join(base, dir, "benchmark.toml"), benchmarkBuffer)
   writeFileSync(join(base, dir, "entry.toml"), entryToml(entry))
   writeFileSync(join(base, dir, "report.json"), JSON.stringify(report, null, 2) + "\n")
+}
+
+/**
+ * Numbers the author publishes next to the pipeline: an optional benchmark.toml
+ * (A/B cost + quality) and the rtk-generated share card in README.md. Both are
+ * read at the same commit as pipeline.toml. Invalid = ignored with a note for
+ * the maintainer; never a refusal, the pipeline itself is unaffected.
+ */
+async function fetchExtras({ owner, repo, sha }) {
+  const out = { benchmark: null, benchmarkBuffer: null, selfReported: null, notes: [] }
+  try {
+    const b = await fetchRaw(benchmarkRawUrl(owner, repo, sha), BENCH_MAX_BYTES)
+    if (b?.too_large) out.notes.push(`benchmark.toml is ${b.bytes} bytes (> ${BENCH_MAX_BYTES}); ignored`)
+    else if (b) {
+      const r = parseBenchmarkToml(b.text)
+      out.notes.push(...r.errors.map((e) => `benchmark.toml ignored: ${e}`), ...r.warnings.map((w) => `benchmark.toml: ${w}`))
+      if (r.benchmark) { out.benchmark = r.benchmark; out.benchmarkBuffer = b.buffer }
+    }
+  } catch (e) { out.notes.push(`benchmark.toml: fetch failed (${e.message})`) }
+  try {
+    const r = await fetchRaw(readmeRawUrl(owner, repo, sha), 128 * 1024)
+    if (r?.text) out.selfReported = parseShareCard(r.text)
+  } catch (e) { out.notes.push(`README.md: fetch failed (${e.message})`) }
+  return out
 }
 
 function openPR({ branch, dir, title, body, labels }) {
@@ -199,6 +225,10 @@ async function main() {
     }
 
     if (prBudget-- <= 0) { console.log(`PR budget exhausted; ${c.key} waits for the next run`); continue }
+    const extras = c.source === 'github' ? await fetchExtras(c) : { benchmark: null, benchmarkBuffer: null, selfReported: null, notes: [] }
+    report.benchmark = extras.benchmark
+    report.self_reported = extras.selfReported
+    report.author_numbers_notes = extras.notes
     const dir = approvedDir(c.owner, c.repo, c.sha)
     const entry = { owner: c.owner, repo: c.repo, sha: c.sha, name: report.name, tier: report.tier, source: c.source, rtk: facts.version, pr: 0, submitted_at: now, gist_id: c.gistId, gist_file: c.gistFile }
     let diff
@@ -209,7 +239,7 @@ async function main() {
     const title = isUpdate ? `update: ${c.owner}/${c.repo} ${diff.oldSha7} → ${short(c.sha)}` : `review: ${c.owner}/${c.repo} @ ${short(c.sha)}`
     const body = renderBody(report, { diff, update: isUpdate })
     const labels = ['candidate', report.label, ...(isUpdate ? ['update'] : []), ...(c.source === 'gist' ? ['gist'] : [])]
-    writeSnapshot(dir, { buffer: blob.buffer, entry, report })
+    writeSnapshot(dir, { buffer: blob.buffer, entry, report, benchmarkBuffer: extras.benchmarkBuffer })
     try {
       const url = openPR({ branch, dir, title, body, labels })
       mark(c.key, 'pr', { pr: url, label: report.label, tier: report.tier })
