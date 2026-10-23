@@ -1,0 +1,10 @@
+owner = "aeppling"
+repo = "rtk-pipeline-laya-delegate"
+sha = "6452459d550853f14fac8a400fb6704cea983900"
+name = "laya-delegate"
+tier = "text"
+source = "github"
+rtk = "v1.0.1"
+pr = 0
+submitted_at = "2026-10-23T13:42:12.642Z"
+
