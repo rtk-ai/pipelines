@@ -1,0 +1,10 @@
+owner = "aeppling"
+repo = "rtk-pipeline-laya-tiered"
+sha = "26b8683d0eeffde220a8d25a60b9654f752c7eb4"
+name = "laya-tiered"
+tier = "text"
+source = "github"
+rtk = "v1.0.1"
+pr = 0
+submitted_at = "2026-10-23T14:35:05.005Z"
+
