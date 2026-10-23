@@ -1,0 +1,10 @@
+owner = "blackId90"
+repo = "rtk-pipeline-rtk-proxy"
+sha = "9c178ad50b17e00dcf5146367b96b70482ca033d"
+name = "rtk-proxy"
+tier = "safe"
+source = "github"
+rtk = "v1.0.1"
+pr = 0
+submitted_at = "2026-10-23T13:42:12.642Z"
+
