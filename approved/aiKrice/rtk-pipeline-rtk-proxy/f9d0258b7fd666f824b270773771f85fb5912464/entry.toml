@@ -1,0 +1,10 @@
+owner = "aiKrice"
+repo = "rtk-pipeline-rtk-proxy"
+sha = "f9d0258b7fd666f824b270773771f85fb5912464"
+name = "rtk-proxy"
+tier = "safe"
+source = "github"
+rtk = "v1.0.1"
+pr = 0
+submitted_at = "2026-10-23T13:42:12.642Z"
+
