@@ -16,7 +16,7 @@ import { parse as parseToml } from 'smol-toml'
 
 export const BENCH_MAX_BYTES = 32 * 1024
 export const BENCH_LIMITS = { tasks: 50, dates: 12 }
-const STR = { suite: 60, agent: 60, model: 60, baseline: 80, metric: 40, task: 80, notes: 400, path: 100, per: 20 }
+const STR = { suite: 60, agent: 60, model: 60, baseline: 80, metric: 40, task: 80, notes: 800, path: 100, per: 20 }
 const PATH_RE = /^(?!.*\.\.)[A-Za-z0-9_][A-Za-z0-9_./-]{0,99}$/
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const KNOWN = new Set(['suite', 'agent', 'model', 'baseline', 'trials_per_arm', 'dates', 'details', 'raw', 'notes', 'cost', 'quality', 'task'])
@@ -59,6 +59,17 @@ function isoDate(v, where, errors) {
   return s
 }
 
+/** The author's note is optional prose: a long one is cut, never a reason to drop the numbers. */
+function noteOf(v, errors, warnings) {
+  if (v === undefined || v === null) return null
+  if (typeof v !== 'string') { errors.push('[benchmark].notes: must be a string'); return null }
+  const n = clean(v)
+  if (!n) return null
+  if (n.length <= STR.notes) return n
+  warnings.push(`[benchmark].notes: over ${STR.notes} characters, cut on the site`)
+  return n.slice(0, STR.notes - 1).trimEnd() + '…'
+}
+
 /** Shape-check a parsed benchmark.toml. Returns { benchmark|null, errors, warnings }. */
 export function normalizeBenchmark(doc) {
   const errors = [], warnings = []
@@ -77,7 +88,7 @@ export function normalizeBenchmark(doc) {
     dates: [],
     details: relPath(b.details, '[benchmark].details', errors),
     raw: relPath(b.raw, '[benchmark].raw', errors),
-    notes: str(b.notes, STR.notes, '[benchmark].notes', errors),
+    notes: noteOf(b.notes, errors, warnings),
     cost: null,
     quality: null,
     tasks: [],
