@@ -8,6 +8,7 @@
 import { readFileSync } from 'node:fs'
 import { fenced, cell } from './lib/fence.mjs'
 import { OWNER_RE, REPO_RE, SHA_RE } from './lib/ids.mjs'
+import { renderNumbersSection } from './lib/benchmark.mjs'
 
 function lineDiff(oldText, newText) {
   // Minimal LCS line diff; good enough for human review of small TOML files.
@@ -62,6 +63,8 @@ export function renderBody(report, opts = {}) {
     L.push(fenced(String(repoFacts.description).slice(0, 300), 'text'))
   }
 
+  L.push(...renderNumbersSection(report, cell))
+
   L.push('')
   L.push("### rtk's own disclosure (`rtk pipeline add --shadow`, verbatim)")
   L.push('')
@@ -110,6 +113,7 @@ export function renderBody(report, opts = {}) {
   if (report.unknown_positions?.length) extras.push(`unknown positions: ${report.unknown_positions.map(cell).join(', ')}`)
   if (report.hidden_unicode?.length) extras.push(`hidden unicode: ${report.hidden_unicode.map((h) => `${h.codepoint}@L${h.line}`).join(' ')}`)
   for (const w of report.warnings ?? []) extras.push(`warning: ${cell(w)}`)
+  for (const w of report.author_numbers_notes ?? []) extras.push(`author numbers: ${cell(w)}`)
   if (extras.length) { L.push(''); L.push('### Bot notes'); for (const x of extras) L.push(`- ${x}`) }
 
   if (opts.diff) {

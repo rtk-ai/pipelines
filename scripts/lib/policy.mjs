@@ -20,8 +20,16 @@ export function loadBlocklist(root) {
   return new Set((Array.isArray(t.owner) ? t.owner : []).map((o) => String(o.login ?? '').toLowerCase()).filter(Boolean))
 }
 
+export function parseRevoked(text) {
+  const t = parseToml(text)
+  return revokedEntries(t)
+}
+
 export function loadRevoked(root) {
-  const t = readToml(join(root, 'revoked.toml'), {})
+  return revokedEntries(readToml(join(root, 'revoked.toml'), {}))
+}
+
+function revokedEntries(t) {
   return (Array.isArray(t.revoked) ? t.revoked : []).map((r) => ({
     owner: String(r.owner ?? ''), repo: String(r.repo ?? ''), sha: String(r.sha ?? '*'),
     reason: String(r.reason ?? ''), date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date ?? ''),

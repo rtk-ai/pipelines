@@ -53,6 +53,62 @@ upstreams, control overrides), `text` (author text reaches your agent or a worke
 or `needs-reading` (anything with text blocks, custom `base_url`, non-canonical `api_key_env`,
 control overrides, warnings).
 
+## Numbers shown next to a pipeline
+
+The site shows a result slot for every listed pipeline, labelled by where the number comes from:
+
+| label on the site | source | produced by |
+|---|---|---|
+| Measured by RTK | `corpus/` + `rtk pipeline bench` in our CI (phase 2, empty for now) | us |
+| Author's benchmark | `benchmark.toml` in the author's repo, read at the same commit as `pipeline.toml` | the author, an A/B run |
+| Author's own usage | the "Measured impact" table that `rtk pipeline share publish` writes into README.md | the author's rtk |
+| Not measured yet | none of the above | — |
+
+The bot checks shape and bounds only (finite numbers, string caps, at most 50 tasks, repo-relative
+paths, no hidden unicode), stores the normalized objects in `report.json` (`benchmark`,
+`self_reported`) and snapshots `benchmark.toml` byte-identical next to `pipeline.toml`.
+Percentages are always recomputed from the two raw values. Author text is capped and rendered as
+text. An invalid `benchmark.toml` is ignored with a note in the PR body; it never blocks the pipeline.
+`validate-pr` re-checks the snapshot against upstream and against `report.benchmark`.
+
+### `benchmark.toml` (authors)
+
+```toml
+schema_version = 1
+
+[benchmark]
+suite          = "SkillsBench"            # required: what you ran
+agent          = "Claude Code"            # optional
+model          = "claude-opus-5-5"        # optional
+baseline       = "stock Claude Code"      # the arm without this pipeline
+trials_per_arm = 48
+dates          = ["2026-10-18", "2026-10-19"]
+details        = "RESULTS.md"             # files in this repo, linked at the reviewed commit
+raw            = "results.tsv"
+notes          = "..."                    # at most 400 chars, shown as your note
+
+[benchmark.cost]                          # required: mean cost per trial, USD
+baseline = 3.587
+pipeline = 3.088
+per      = "trial"                        # trial | task | session | ...
+
+[benchmark.quality]                       # optional, one metric
+metric   = "reward"
+baseline = 0.81
+pipeline = 0.81
+higher_is_better = true
+
+[[benchmark.task]]                        # optional, at most 50
+name = "parallel-tfidf-search"
+baseline = 1.345
+pipeline = 0.946
+quality_baseline = 1.0
+quality_pipeline = 1.0
+```
+
+Commit it next to `pipeline.toml`; the next crawl of that commit picks it up (an already-listed
+pipeline gets an update PR).
+
 ## Reviewing a PR
 
 Read the body top to bottom: rtk's own disclosure, every text block in full, the egress table,
@@ -66,8 +122,9 @@ and `/pipelines/index.json` lists it under `revoked`.
 
 ```
 approved/<owner>/<repo>/<sha>/pipeline.toml   byte-identical snapshot of the upstream blob
+                              benchmark.toml  optional, byte-identical snapshot of the author's benchmark.toml
                               entry.toml      owner, repo, sha, name, tier, source, rtk, pr, submitted_at
-                              report.json     precheck output (schema in scripts/lib/entry.mjs)
+                              report.json     precheck output + author numbers (schema in scripts/lib/entry.mjs)
 revoked.toml  blocklist.toml  reserved.toml   policy, maintainer-edited via PR
 rtk.pin                                        pinned rtk release + sha256 (bumped by rtk-pin-bump.yml)
 scripts/      crawl, precheck, report, validate-pr, on-merge, recheck, rtk-pinned.sh, setup-repo.sh
