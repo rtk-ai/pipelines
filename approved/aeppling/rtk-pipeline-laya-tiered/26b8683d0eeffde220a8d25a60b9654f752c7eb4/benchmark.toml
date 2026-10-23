@@ -1,0 +1,102 @@
+# benchmark.toml — numbers published by the pipeline author.
+# The marketplace shows them as "author's benchmark"; the bot checks the shape only.
+schema_version = 1
+
+[benchmark]
+suite          = "SkillsBench"
+agent          = "Claude Code"
+model          = "claude-opus-5-5"
+baseline       = "stock Claude Code"
+trials_per_arm = 44
+dates          = ["2026-10-22", "2026-10-23"]
+details        = "RESULTS.md"
+raw            = "results.tsv"
+notes          = "11 tasks, 4 trials per arm per task, both arms in the same batch; pass rate = mean of the per-task pass rates; trials that errored or ran past the task time limit excluded (-24.0% with timed-out-but-passing trials counted). azure-bgp-oscillation-route-leak and llm-prefix-cache-replay score 0 for every model and count for cost only. A second run on 6 of these tasks (2026-10-21/22, OFF / laya-delegate / laya-tiered in one batch) gave -26.7% with reward 0.72 -> 0.85 (laya-delegate -13.0%); see RESULTS.md. Costs 1.5-1.8x the wall-clock of stock Claude Code."
+
+[benchmark.cost]
+# mean cost per trial, USD, summed over the 11 tasks
+baseline = 4.312
+pipeline = 3.440
+per      = "trial"
+
+[benchmark.quality]
+metric   = "reward"
+baseline = 0.66
+pipeline = 0.64
+
+[[benchmark.task]]
+name = "parallel-tfidf-search"
+baseline = 0.885
+pipeline = 0.432
+quality_baseline = 1.00
+quality_pipeline = 0.75
+
+[[benchmark.task]]
+name = "python-scala-translation"
+baseline = 0.891
+pipeline = 0.641
+quality_baseline = 1.00
+quality_pipeline = 1.00
+
+[[benchmark.task]]
+name = "fix-visual-stability"
+baseline = 0.620
+pipeline = 0.427
+quality_baseline = 0.00
+quality_pipeline = 0.50
+
+[[benchmark.task]]
+name = "fix-build-google-auto"
+baseline = 0.298
+pipeline = 0.227
+quality_baseline = 0.75
+quality_pipeline = 1.00
+
+[[benchmark.task]]
+name = "react-performance-debugging"
+baseline = 0.476
+pipeline = 0.431
+quality_baseline = 1.00
+quality_pipeline = 0.25
+
+[[benchmark.task]]
+name = "debug-trl-grpo"
+baseline = 0.274
+pipeline = 0.253
+quality_baseline = 0.60
+quality_pipeline = 0.60
+
+[[benchmark.task]]
+name = "fix-erlang-ssh-cve"
+baseline = 0.233
+pipeline = 0.250
+quality_baseline = 1.00
+quality_pipeline = 1.00
+
+[[benchmark.task]]
+name = "dialogue-parser"
+baseline = 0.234
+pipeline = 0.260
+quality_baseline = 0.92
+quality_pipeline = 0.92
+
+[[benchmark.task]]
+name = "jax-computing-basics"
+baseline = 0.125
+pipeline = 0.167
+quality_baseline = 1.00
+quality_pipeline = 1.00
+
+[[benchmark.task]]
+name = "azure-bgp-oscillation-route-leak"
+baseline = 0.134
+pipeline = 0.120
+quality_baseline = 0.00
+quality_pipeline = 0.00
+
+[[benchmark.task]]
+name = "llm-prefix-cache-replay"
+baseline = 0.141
+pipeline = 0.232
+quality_baseline = 0.00
+quality_pipeline = 0.00
