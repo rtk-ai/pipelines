@@ -65,7 +65,7 @@ The site shows a result slot for every listed pipeline, labelled by where the nu
 | Not measured yet | none of the above | — |
 
 The bot checks shape and bounds only (finite numbers, string caps, at most 50 tasks, repo-relative
-paths, no hidden unicode), stores the normalized objects in `report.json` (`benchmark`,
+paths, no hidden unicode; a long note is cut, never a reason to drop the numbers), stores the normalized objects in `report.json` (`benchmark`,
 `self_reported`) and snapshots `benchmark.toml` byte-identical next to `pipeline.toml`.
 Percentages are always recomputed from the two raw values. Author text is capped and rendered as
 text. An invalid `benchmark.toml` is ignored with a note in the PR body; it never blocks the pipeline.
@@ -85,7 +85,7 @@ trials_per_arm = 48
 dates          = ["2026-10-18", "2026-10-19"]
 details        = "RESULTS.md"             # files in this repo, linked at the reviewed commit
 raw            = "results.tsv"
-notes          = "..."                    # at most 400 chars, shown as your note
+notes          = "..."                    # optional; up to 800 chars shown, longer is cut
 
 [benchmark.cost]                          # required: mean cost per trial, USD
 baseline = 3.587
