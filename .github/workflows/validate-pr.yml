@@ -7,13 +7,10 @@ on:
   # script exits 0 immediately when no snapshot or revocation changed.
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
-  # Transition only: lets the PR that introduces pull_request_target validate
-  # itself (the base branch has no such trigger yet). Removed by the follow-up PR.
-  pull_request:
 permissions:
   contents: read
 concurrency:
-  group: validate-pr-${{ github.event_name }}-${{ github.event.pull_request.number }}
+  group: validate-pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 jobs:
   validate-pr:
@@ -23,7 +20,6 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - name: Fetch the PR head as data (not checked out)
-        if: github.event_name == 'pull_request_target'
         run: git fetch --no-tags origin "+refs/pull/${{ github.event.pull_request.number }}/head:refs/remotes/pr/head"
       - uses: pnpm/action-setup@v4
         with: { version: 9 }
@@ -41,5 +37,5 @@ jobs:
         env:
           RTK_BIN: ${{ steps.rtk.outputs.bin }}
           BASE_REF: origin/${{ github.event.pull_request.base.ref }}
-          HEAD_REF: ${{ github.event_name == 'pull_request_target' && 'refs/remotes/pr/head' || 'HEAD' }}
+          HEAD_REF: refs/remotes/pr/head
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
