@@ -1,1 +1,23 @@
-{}
+{
+  "aeppling/rtk-pipeline-laya-delegate@6452459d550853f14fac8a400fb6704cea983900": {
+    "result": "pr",
+    "at": "2026-10-23T13:42:12.642Z",
+    "pr": "https://github.com/rtk-ai/pipelines/pull/3",
+    "label": "needs-reading",
+    "tier": "text"
+  },
+  "aiKrice/rtk-pipeline-rtk-proxy@f9d0258b7fd666f824b270773771f85fb5912464": {
+    "result": "pr",
+    "at": "2026-10-23T13:42:12.642Z",
+    "pr": "https://github.com/rtk-ai/pipelines/pull/4",
+    "label": "pre-checked",
+    "tier": "safe"
+  },
+  "blackId90/rtk-pipeline-rtk-proxy@9c178ad50b17e00dcf5146367b96b70482ca033d": {
+    "result": "pr",
+    "at": "2026-10-23T13:42:12.642Z",
+    "pr": "https://github.com/rtk-ai/pipelines/pull/5",
+    "label": "pre-checked",
+    "tier": "safe"
+  }
+}
