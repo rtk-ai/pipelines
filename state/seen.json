@@ -19,5 +19,12 @@
     "pr": "https://github.com/rtk-ai/pipelines/pull/5",
     "label": "pre-checked",
     "tier": "safe"
+  },
+  "aeppling/rtk-pipeline-laya-tiered@26b8683d0eeffde220a8d25a60b9654f752c7eb4": {
+    "result": "pr",
+    "at": "2026-10-23T14:01:45.858Z",
+    "pr": "https://github.com/rtk-ai/pipelines/pull/6",
+    "label": "needs-reading",
+    "tier": "text"
   }
 }
