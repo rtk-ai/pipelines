@@ -16,6 +16,7 @@ gist|BFD4F2|Submitted as a gist
 submit-gist|5319E7|Gist submission issue (bot input)
 report|D93F0B|Report about a listed pipeline
 recheck|E99695|Approved snapshot fails on a newer rtk
+duplicate|CFD3D7|Identical pipeline.toml to an already listed pipeline
 LABELS
 
 echo "== state branch (bot-writable, unprotected)"
