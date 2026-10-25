@@ -20,6 +20,7 @@ import { loadBlocklist, loadReserved, loadRevoked, listApproved, readSeen, isRev
 import { entryToml } from './lib/entry.mjs'
 import { precheck, loadRtkFacts } from './precheck.mjs'
 import { renderBody } from './report.mjs'
+import { approvedFingerprints, findDuplicate, DUPLICATE_LABEL, duplicateNote } from './lib/dedupe.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const REPO = process.env.REPO || 'rtk-ai/pipelines'
@@ -146,6 +147,7 @@ async function main() {
   const reserved = loadReserved(ROOT)
   const revoked = loadRevoked(ROOT)
   const approved = listApproved(ROOT)
+  const approvedFp = approvedFingerprints(approved)
   const approvedByRepo = new Map()
   for (const a of approved) {
     const k = `${a.owner}/${a.repo}`.toLowerCase()
@@ -229,6 +231,9 @@ async function main() {
     report.benchmark = extras.benchmark
     report.self_reported = extras.selfReported
     report.author_numbers_notes = extras.notes
+    const dup = findDuplicate(approvedFp, blob.text, c.owner, c.repo)
+    report.duplicate_of = dup ? { owner: dup.owner, repo: dup.repo, sha: dup.sha } : null
+    if (dup) console.log(`duplicate: ${c.key} is ${duplicateNote(dup)}`)
     const dir = approvedDir(c.owner, c.repo, c.sha)
     const entry = { owner: c.owner, repo: c.repo, sha: c.sha, name: report.name, tier: report.tier, source: c.source, rtk: facts.version, pr: 0, submitted_at: now, gist_id: c.gistId, gist_file: c.gistFile }
     let diff
@@ -238,7 +243,7 @@ async function main() {
     }
     const title = isUpdate ? `update: ${c.owner}/${c.repo} ${diff.oldSha7} → ${short(c.sha)}` : `review: ${c.owner}/${c.repo} @ ${short(c.sha)}`
     const body = renderBody(report, { diff, update: isUpdate })
-    const labels = ['candidate', report.label, ...(isUpdate ? ['update'] : []), ...(c.source === 'gist' ? ['gist'] : [])]
+    const labels = ['candidate', report.label, ...(isUpdate ? ['update'] : []), ...(c.source === 'gist' ? ['gist'] : []), ...(report.duplicate_of ? [DUPLICATE_LABEL] : [])]
     writeSnapshot(dir, { buffer: blob.buffer, entry, report, benchmarkBuffer: extras.benchmarkBuffer })
     try {
       const url = openPR({ branch, dir, title, body, labels })

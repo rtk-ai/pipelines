@@ -9,6 +9,7 @@ import { readFileSync } from 'node:fs'
 import { fenced, cell } from './lib/fence.mjs'
 import { OWNER_RE, REPO_RE, SHA_RE } from './lib/ids.mjs'
 import { renderNumbersSection } from './lib/benchmark.mjs'
+import { duplicateNote } from './lib/dedupe.mjs'
 
 function lineDiff(oldText, newText) {
   // Minimal LCS line diff; good enough for human review of small TOML files.
@@ -48,6 +49,10 @@ export function renderBody(report, opts = {}) {
   L.push('')
   L.push(`**tier:** \`${report.tier}\` · **label:** \`${report.label}\` · **size:** ${report.size_bytes} bytes · **rtk:** ${report.rtk} · **text:** ${report.text_blocks.length} block(s), ${report.text_chars ?? 0} chars`)
   L.push(`**owner account age:** ${age(repoFacts.owner_created_at)} · **stars:** ${repoFacts.stars ?? '?'} · **forks:** ${repoFacts.forks ?? '?'}${repoFacts.parent ? ` · **fork of:** \`${String(repoFacts.parent).replace(/[^A-Za-z0-9_./-]/g, '')}\`` : ''}`)
+  if (report.duplicate_of && OWNER_RE.test(report.duplicate_of.owner ?? '') && REPO_RE.test(report.duplicate_of.repo ?? '') && SHA_RE.test(report.duplicate_of.sha ?? '')) {
+    L.push('')
+    L.push(`> **Duplicate** \u2014 ${duplicateNote(report.duplicate_of)}. Listing it again adds a second entry for the same pipeline; close it unless this repo brings something of its own (a benchmark, a write-up).`)
+  }
   if (report.refusals?.length) {
     L.push('')
     L.push('> **Refused by the bot** — this PR should not exist; close it.')
