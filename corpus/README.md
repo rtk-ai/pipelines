@@ -1,5 +1,5 @@
 # corpus
 
-Phase 2: public reference outputs for `rtk pipeline bench`, so every listed
-pipeline gets a measured before/after number computed by our CI instead of the
-author's self-reported figure. Empty for now.
+Reserved for public reference outputs that `rtk pipeline bench` can replay, so that
+listed pipelines get a before/after number measured by our CI rather than only the
+author's figures. Empty for now; nothing reads it yet.
