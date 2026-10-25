@@ -26,5 +26,12 @@
     "pr": "https://github.com/rtk-ai/pipelines/pull/12",
     "label": "pre-checked",
     "tier": "safe"
+  },
+  "aeppling/rtk-pipeline-default-bash-compress@ef1b85b59cb670b70a40a7cb0dbb8e699bb6ba9f": {
+    "result": "pr",
+    "at": "2026-10-25T15:13:18.466Z",
+    "pr": "https://github.com/rtk-ai/pipelines/pull/15",
+    "label": "pre-checked",
+    "tier": "safe"
   }
 }
