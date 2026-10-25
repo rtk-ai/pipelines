@@ -1,1 +1,11 @@
-{}
+{
+  "aeppling/rtk-pipeline-default-bash-compress@ef1b85b59cb670b70a40a7cb0dbb8e699bb6ba9f": {
+    "approved_at": "2026-10-25T16:58:04+01:00",
+    "approved_by": "aeppling",
+    "discussion_url": "https://github.com/rtk-ai/pipelines/discussions/18",
+    "pr": 15
+  },
+  "aeppling/rtk-pipeline-default-bash-compress": {
+    "discussion_url": "https://github.com/rtk-ai/pipelines/discussions/18"
+  }
+}
