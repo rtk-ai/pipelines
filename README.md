@@ -59,7 +59,7 @@ The site shows a result slot for every listed pipeline, labelled by where the nu
 
 | label on the site | source | produced by |
 |---|---|---|
-| Measured by RTK | `corpus/` + `rtk pipeline bench` in our CI (not produced yet) | us |
+| Measured by RTK | `rtk pipeline bench` over a reference corpus in our CI (not produced yet) | us |
 | Author's benchmark | `benchmark.toml` in the author's repo, read at the same commit as `pipeline.toml` | the author, an A/B run |
 | Author's own usage | the "Measured impact" table that `rtk pipeline share publish` writes into README.md | the author's rtk |
 | Not measured yet | none of the above | — |
