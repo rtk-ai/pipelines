@@ -4,7 +4,9 @@
 //    discussion_url in state/approvals.json (on the `state` branch worktree),
 //    post to Discord
 //  - for new revocations: comment on the pipeline's Discussion, post to Discord
+//  - open candidate PRs that duplicate what is now listed get the `duplicate` label
 //  - repository_dispatch `pipelines-updated` to rtk-ai/rtk-ldp
+//  ONLY_DEDUPE=1 runs just the duplicate pass (by hand, any time).
 //
 // env: GH_TOKEN, REPO, BEFORE, AFTER (push range), ACTOR, PUSHED_AT,
 //      STATE_DIR, DISCORD_WEBHOOK_URL, LDP_DISPATCH_TOKEN, LDP_REPO (default rtk-ai/rtk-ldp), DRY_RUN
@@ -13,9 +15,10 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { join, resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
-import { graphql, rest, postDiscord } from './lib/github.mjs'
+import { graphql, rest, postDiscord, fetchRaw } from './lib/github.mjs'
 import { parseApprovedPath, installLine } from './lib/ids.mjs'
-import { loadRevoked } from './lib/policy.mjs'
+import { loadRevoked, listApproved } from './lib/policy.mjs'
+import { approvedFingerprints, findDuplicate, DUPLICATE_LABEL, duplicateNote } from './lib/dedupe.mjs'
 import { parseEntry } from './lib/entry.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -63,7 +66,35 @@ async function dispatchSite() {
   if (!res.ok) throw new Error(`dispatch -> ${res.status}`)
 }
 
+/** Each time something is listed, still-open candidates that now duplicate it get the label. */
+async function labelDuplicateCandidates() {
+  const fpMap = approvedFingerprints(listApproved(ROOT))
+  let prs = []
+  try { prs = await rest('GET', `/repos/${REPO}/pulls?state=open&per_page=100`) } catch (e) { console.error(`pull list: ${e.message}`); return }
+  for (const pr of prs ?? []) {
+    const names = (pr.labels ?? []).map((l) => l.name)
+    if (!names.includes('candidate') || names.includes(DUPLICATE_LABEL)) continue
+    let files = []
+    try { files = await rest('GET', `/repos/${REPO}/pulls/${pr.number}/files?per_page=100`) } catch { continue }
+    const f = (files ?? []).find((x) => x.status === 'added' && /^approved\/[^/]+\/[^/]+\/[0-9a-f]{40}\/pipeline\.toml$/.test(x.filename))
+    if (!f?.raw_url) continue
+    let blob = null
+    try { blob = await fetchRaw(f.raw_url) } catch { continue }
+    if (!blob?.text) continue
+    const [, owner, repo] = f.filename.split('/')
+    const dup = findDuplicate(fpMap, blob.text, owner, repo)
+    if (!dup) { console.log(`#${pr.number}: no duplicate`); continue }
+    if (DRY) { console.log(`[dry-run] would label #${pr.number} duplicate of ${dup.owner}/${dup.repo}`); continue }
+    try {
+      await rest('POST', `/repos/${REPO}/issues/${pr.number}/labels`, { labels: [DUPLICATE_LABEL] })
+      await rest('POST', `/repos/${REPO}/issues/${pr.number}/comments`, { body: `Duplicate: ${duplicateNote(dup)}, which is now listed.` })
+      console.log(`labelled #${pr.number} duplicate of ${dup.owner}/${dup.repo}`)
+    } catch (e) { console.error(`label #${pr.number}: ${e.message}`) }
+  }
+}
+
 async function main() {
+  if (process.env.ONLY_DEDUPE === '1') { await labelDuplicateCandidates(); return }
   const before = process.env.BEFORE, after = process.env.AFTER || 'HEAD'
   const range = before && !/^0+$/.test(before) ? `${before}..${after}` : `${after}~1..${after}`
   const files = git(['diff', '--name-status', range]).split('\n').filter(Boolean).map((l) => { const [s, ...r] = l.split('\t'); return { status: s[0], path: r[r.length - 1] } })
@@ -110,6 +141,7 @@ async function main() {
     mkdirSync(dirname(APPROVALS), { recursive: true })
     writeFileSync(APPROVALS, JSON.stringify(approvals, null, 2) + '\n')
   }
+  if (files.some((f) => f.status === 'A' && f.path.startsWith('approved/'))) await labelDuplicateCandidates()
   await dispatchSite()
 }
 

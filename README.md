@@ -51,7 +51,9 @@ Everything else becomes a PR. **Tiers**: `safe` (transform-only), `structural` (
 upstreams, control overrides), `text` (author text reaches your agent or a worker model).
 **Labels**: `pre-checked` (safe/structural, provider-default or loopback egress, canonical env vars)
 or `needs-reading` (anything with text blocks, custom `base_url`, non-canonical `api_key_env`,
-control overrides, warnings).
+control overrides, warnings). `duplicate` when the pipeline.toml means the same as an already
+listed one from another repo (comments, formatting and the name ignored); the PR body names it,
+and `on-merge` re-labels the open candidates each time something is listed.
 
 ## Numbers shown next to a pipeline
 
