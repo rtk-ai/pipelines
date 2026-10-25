@@ -117,6 +117,9 @@ commit (a new commit by the author gets a fresh PR). Repeated abuse → `blockli
 
 To pull a listed pipeline: add it to `revoked.toml` in a PR. The site drops it on the next deploy
 and `/pipelines/index.json` lists it under `revoked`.
+To unlist without revoking (for example to review it again later): remove its whole
+`approved/<owner>/<repo>/<sha>/` directory in a PR and drop its key from `state/seen.json` on the
+`state` branch, so the next crawl opens a fresh review PR.
 
 ## Layout
 
