@@ -4,7 +4,7 @@
 // It runs from the BASE branch's code (workflow: pull_request_target) and reads
 // the PR's files straight out of git, so a PR can neither change the validator
 // that judges it nor get anything of its own executed. Checks:
-//  - snapshots are immutable: only additions under approved/, never edits/deletes
+//  - snapshots are never edited: a listing is added whole or removed whole (delisted)
 //  - each added pipeline.toml (and benchmark.toml) is byte-identical to the upstream blob at <sha>
 //  - precheck re-runs on the snapshot with the current rtk.pin; refused = fail
 //  - report.benchmark matches benchmark.toml; entry.toml and report.json match their path and schema
@@ -53,18 +53,33 @@ async function main() {
   const files = changed()
   const touched = new Set()
   let revokedTouched = false
+  const removed = new Set()
   for (const f of files) {
     if (f.path.startsWith('approved/')) {
-      if (f.status !== 'A') { errors.push(`${f.path}: snapshots are immutable (${f.status}); pull a pipeline through revoked.toml instead`); continue }
       const p = parseApprovedPath(f.path)
       if (!p) { errors.push(`${f.path}: not a valid approved/<owner>/<repo>/<sha>/{pipeline.toml,entry.toml,report.json,benchmark.toml} path`); continue }
-      touched.add(`${p.owner}/${p.repo}/${p.sha}`)
+      const id = `${p.owner}/${p.repo}/${p.sha}`
+      if (f.status === 'A') touched.add(id)
+      else if (f.status === 'D') removed.add(id)
+      else errors.push(`${f.path}: snapshots are never edited (${f.status}); a listing is added or removed whole, or pulled through revoked.toml`)
     } else if (f.path === 'revoked.toml') {
       revokedTouched = true
       try { errors.push(...validateRevoked(parseRevoked(readAt('revoked.toml').toString('utf8')))) } catch (e) { errors.push(`revoked.toml: ${e.message}`) }
     }
   }
-  if (touched.size === 0 && !revokedTouched) { console.log('validate-pr: nothing to validate'); return }
+  // A maintainer may delist a snapshot (for example to re-review it later): the whole
+  // directory goes, nothing of it stays, and nothing is edited in place.
+  for (const id of removed) {
+    if (touched.has(id)) { errors.push(`approved/${id}: added and removed in the same PR`); continue }
+    const left = ['pipeline.toml', 'entry.toml', 'report.json', 'benchmark.toml'].filter((n) => existsAt(`approved/${id}/${n}`))
+    if (left.length) errors.push(`approved/${id}: a snapshot is removed whole or not at all (${left.join(', ')} still present)`)
+    else console.log(`approved/${id}: delisted (removed whole)`)
+  }
+  if (touched.size === 0 && !revokedTouched) {
+    if (errors.length) { for (const e of errors) console.error(`✖ ${e}`); process.exit(1) }
+    console.log(removed.size ? `validate-pr: ${removed.size} snapshot(s) delisted, nothing to validate` : 'validate-pr: nothing to validate')
+    return
+  }
 
   let facts = null
   for (const t of touched) {
