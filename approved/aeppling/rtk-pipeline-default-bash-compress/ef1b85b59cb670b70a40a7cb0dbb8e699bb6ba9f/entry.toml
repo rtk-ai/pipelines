@@ -1,0 +1,10 @@
+owner = "aeppling"
+repo = "rtk-pipeline-default-bash-compress"
+sha = "ef1b85b59cb670b70a40a7cb0dbb8e699bb6ba9f"
+name = "default-bash-compress"
+tier = "safe"
+source = "github"
+rtk = "v1.0.1"
+pr = 0
+submitted_at = "2026-10-25T15:13:18.466Z"
+

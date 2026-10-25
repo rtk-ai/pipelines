@@ -1,0 +1,177 @@
+{
+  "rtk": "v1.0.1",
+  "key": "aeppling/rtk-pipeline-default-bash-compress@ef1b85b59cb670b70a40a7cb0dbb8e699bb6ba9f",
+  "checked_at": "2026-10-25T15:13:19.657Z",
+  "name": "default-bash-compress",
+  "tier": "safe",
+  "label": "pre-checked",
+  "size_bytes": 2380,
+  "extends": [
+    "rtk:default"
+  ],
+  "rules": [],
+  "rule_summary": [],
+  "directives": [],
+  "egress": [],
+  "env_vars": [],
+  "tasks": [],
+  "classifiers": [],
+  "text_blocks": [],
+  "text_chars": 0,
+  "overrides": [
+    {
+      "target": "normalize",
+      "keys": [
+        "enabled"
+      ],
+      "target_kind": "rule",
+      "target_builtin": "rtk:default",
+      "target_action": null,
+      "touches_control": false
+    }
+  ],
+  "control_rules": {
+    "deny": 0,
+    "route": 0,
+    "rewrite": 0,
+    "passthrough": 0
+  },
+  "plugins_missing": [],
+  "reserved_methods": [],
+  "hidden_unicode": [],
+  "unknown_positions": [],
+  "warnings": [],
+  "refusals": [],
+  "caps": {
+    "perBlock": 1500,
+    "total": 4000
+  },
+  "toml_sha256": "e7484bdbdf7dcc622dc21a8b5f33e5c772256718d85543a2a4c2d595e1af15a5",
+  "add_exit_code": 0,
+  "add_stdout": "\n┌─ You are installing a third-party pipeline ─────────────────────────────┐\n│ You are responsible for what it does: it can rewrite the commands your  │\n│ agent runs, filter and replace what it reads, inject instructions, and  │\n│ send content to any upstream endpoint it declares.                      │\n│                                                                         │\n│ Review what this one does:                                              │\n└─────────────────────────────────────────────────────────────────────────┘\n\n    0 rule(s), 0 directive(s)\n    extends: rtk:default\n    override on `normalize` — replaces these fields verbatim:\n    enabled = false\n\ntrying `default-bash-compress` silently — measured on your sessions, applied to nothing.\n  measure:   rtk pipeline eval default-bash-compress      (after a few sessions)\n  go live:   rtk pipeline promote default-bash-compress\n  discard:   rtk pipeline promote default-bash-compress --discard\n",
+  "add_stderr": "",
+  "repo": {
+    "stars": 0,
+    "forks": 0,
+    "parent": null,
+    "is_fork": false,
+    "pushedAt": "2026-10-25T14:59:40Z",
+    "createdAt": "2026-10-25T14:59:12Z",
+    "owner_created_at": "2018-10-09T11:36:52Z",
+    "description": "RTK pipeline · rtk pipeline add github:aeppling/rtk-pipeline-default-bash-compress",
+    "default_branch": "main"
+  },
+  "benchmark": {
+    "suite": "SkillsBench",
+    "agent": "Claude Code",
+    "model": "claude-opus-4-8",
+    "baseline": "stock Claude Code",
+    "trials_per_arm": 48,
+    "dates": [
+      "2026-08-10"
+    ],
+    "details": "RESULTS.md",
+    "raw": "results.tsv",
+    "notes": "12 tasks, 4 trials per arm per task, both arms in the same batch, RTK v0.45.0 PreToolUse hook only; runtime-error trials excluded; data-to-d3 ran too but is left out of the aggregates (no verifier score, unbalanced arms). Pooled over all trials with a permutation test: -4.8%, p = 0.305, i.e. cost-neutral to slightly cheaper. Pass rate is the mean reward over the 11 tasks whose verifier produced a score; spring-boot-jakarta-migration has none.",
+    "cost": {
+      "baseline": 12.098,
+      "pipeline": 11.349,
+      "unit": "usd",
+      "per": "trial"
+    },
+    "quality": {
+      "metric": "reward",
+      "baseline": 0.49,
+      "pipeline": 0.46,
+      "higher_is_better": true
+    },
+    "tasks": [
+      {
+        "name": "parallel-tfidf-search",
+        "baseline": 1.368,
+        "pipeline": 0.924,
+        "quality_baseline": 1,
+        "quality_pipeline": 1
+      },
+      {
+        "name": "react-performance-debugging",
+        "baseline": 1.224,
+        "pipeline": 0.971,
+        "quality_baseline": 0.5,
+        "quality_pipeline": 0
+      },
+      {
+        "name": "python-scala-translation",
+        "baseline": 1.223,
+        "pipeline": 1.009,
+        "quality_baseline": 0,
+        "quality_pipeline": 0
+      },
+      {
+        "name": "dialogue-parser",
+        "baseline": 0.368,
+        "pipeline": 0.323,
+        "quality_baseline": 0.75,
+        "quality_pipeline": 0.79
+      },
+      {
+        "name": "fix-build-google-auto",
+        "baseline": 2.109,
+        "pipeline": 1.906,
+        "quality_baseline": 1,
+        "quality_pipeline": 1
+      },
+      {
+        "name": "jax-computing-basics",
+        "baseline": 0.284,
+        "pipeline": 0.271,
+        "quality_baseline": 1,
+        "quality_pipeline": 1
+      },
+      {
+        "name": "spring-boot-jakarta-migration",
+        "baseline": 0.906,
+        "pipeline": 0.862,
+        "quality_baseline": null,
+        "quality_pipeline": null
+      },
+      {
+        "name": "debug-trl-grpo",
+        "baseline": 0.595,
+        "pipeline": 0.633,
+        "quality_baseline": 0.42,
+        "quality_pipeline": 0.25
+      },
+      {
+        "name": "simpo-code-reproduction",
+        "baseline": 0.975,
+        "pipeline": 1.044,
+        "quality_baseline": 0,
+        "quality_pipeline": 0
+      },
+      {
+        "name": "llm-prefix-cache-replay",
+        "baseline": 0.632,
+        "pipeline": 0.676,
+        "quality_baseline": 0,
+        "quality_pipeline": 0
+      },
+      {
+        "name": "azure-bgp-oscillation-route-leak",
+        "baseline": 0.489,
+        "pipeline": 0.542,
+        "quality_baseline": 0,
+        "quality_pipeline": 0
+      },
+      {
+        "name": "fix-visual-stability",
+        "baseline": 1.923,
+        "pipeline": 2.189,
+        "quality_baseline": 0.75,
+        "quality_pipeline": 1
+      }
+    ]
+  },
+  "self_reported": null,
+  "author_numbers_notes": []
+}
