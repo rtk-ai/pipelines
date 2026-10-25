@@ -60,6 +60,13 @@ jobs:
           STATE_DIR: ${{ github.workspace }}/.state
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
           MAX_PRS: "10"
+      - name: Label duplicates among the open candidates
+        if: inputs.dry_run != true
+        run: node scripts/on-merge.mjs
+        env:
+          ONLY_DEDUPE: "1"
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          REPO: ${{ github.repository }}
       - name: Persist crawl state
         if: inputs.dry_run != true
         run: |
