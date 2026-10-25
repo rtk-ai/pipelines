@@ -55,3 +55,21 @@ export const DUPLICATE_LABEL = 'duplicate'
 export function duplicateNote(d) {
   return `identical pipeline.toml (ignoring comments, formatting and the name) to the listed \`${d.owner}/${d.repo}\` @ \`${String(d.sha).slice(0, 7)}\``
 }
+
+/**
+ * Among open candidates (oldest first: [{ number, owner, repo, fp }]), the later
+ * ones whose fingerprint equals an earlier one from another repo.
+ * Returns [{ number, of: { number, owner, repo } }].
+ */
+export function pairOpenDuplicates(items) {
+  const seen = []
+  const out = []
+  for (const it of [...items].sort((a, b) => a.number - b.number)) {
+    if (!it.fp) continue
+    const self = `${it.owner}/${it.repo}`.toLowerCase()
+    const earlier = seen.find((e) => e.fp === it.fp && `${e.owner}/${e.repo}`.toLowerCase() !== self)
+    if (earlier) out.push({ number: it.number, of: { number: earlier.number, owner: earlier.owner, repo: earlier.repo } })
+    else seen.push(it)
+  }
+  return out
+}

@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { graphql, rest, postDiscord, fetchRaw } from './lib/github.mjs'
 import { parseApprovedPath, installLine } from './lib/ids.mjs'
 import { loadRevoked, listApproved } from './lib/policy.mjs'
-import { approvedFingerprints, findDuplicate, DUPLICATE_LABEL, duplicateNote } from './lib/dedupe.mjs'
+import { approvedFingerprints, findDuplicate, contentFingerprint, pairOpenDuplicates, DUPLICATE_LABEL, duplicateNote } from './lib/dedupe.mjs'
 import { parseEntry } from './lib/entry.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -66,14 +66,19 @@ async function dispatchSite() {
   if (!res.ok) throw new Error(`dispatch -> ${res.status}`)
 }
 
-/** Each time something is listed, still-open candidates that now duplicate it get the label. */
+/**
+ * Duplicate pass over the open candidates: against what is listed first, then
+ * against each other (the later PR is the duplicate of the earlier one). Runs
+ * after every crawl and every listing merge; ONLY_DEDUPE=1 runs it by hand.
+ */
 async function labelDuplicateCandidates() {
   const fpMap = approvedFingerprints(listApproved(ROOT))
   let prs = []
   try { prs = await rest('GET', `/repos/${REPO}/pulls?state=open&per_page=100`) } catch (e) { console.error(`pull list: ${e.message}`); return }
+  const items = []
   for (const pr of prs ?? []) {
     const names = (pr.labels ?? []).map((l) => l.name)
-    if (!names.includes('candidate') || names.includes(DUPLICATE_LABEL)) continue
+    if (!names.includes('candidate')) continue
     let files = []
     try { files = await rest('GET', `/repos/${REPO}/pulls/${pr.number}/files?per_page=100`) } catch { continue }
     const f = (files ?? []).find((x) => x.status === 'added' && /^approved\/[^/]+\/[^/]+\/[0-9a-f]{40}\/pipeline\.toml$/.test(x.filename))
@@ -82,14 +87,26 @@ async function labelDuplicateCandidates() {
     try { blob = await fetchRaw(f.raw_url) } catch { continue }
     if (!blob?.text) continue
     const [, owner, repo] = f.filename.split('/')
-    const dup = findDuplicate(fpMap, blob.text, owner, repo)
-    if (!dup) { console.log(`#${pr.number}: no duplicate`); continue }
-    if (DRY) { console.log(`[dry-run] would label #${pr.number} duplicate of ${dup.owner}/${dup.repo}`); continue }
+    items.push({ number: pr.number, owner, repo, toml: blob.text, fp: contentFingerprint(blob.text), labelled: names.includes(DUPLICATE_LABEL) })
+  }
+  const verdicts = new Map()
+  for (const it of items) {
+    const dup = findDuplicate(fpMap, it.toml, it.owner, it.repo)
+    if (dup) verdicts.set(it.number, `${duplicateNote(dup)}, which is listed`)
+  }
+  for (const p of pairOpenDuplicates(items.filter((it) => !verdicts.has(it.number)))) {
+    verdicts.set(p.number, `identical pipeline.toml (ignoring comments, formatting and the name) to the earlier open review #${p.of.number} (\`${p.of.owner}/${p.of.repo}\`)`)
+  }
+  for (const it of items) {
+    const why = verdicts.get(it.number)
+    if (!why) { console.log(`#${it.number}: no duplicate`); continue }
+    if (it.labelled) { console.log(`#${it.number}: already labelled`); continue }
+    if (DRY) { console.log(`[dry-run] would label #${it.number}: ${why}`); continue }
     try {
-      await rest('POST', `/repos/${REPO}/issues/${pr.number}/labels`, { labels: [DUPLICATE_LABEL] })
-      await rest('POST', `/repos/${REPO}/issues/${pr.number}/comments`, { body: `Duplicate: ${duplicateNote(dup)}, which is now listed.` })
-      console.log(`labelled #${pr.number} duplicate of ${dup.owner}/${dup.repo}`)
-    } catch (e) { console.error(`label #${pr.number}: ${e.message}`) }
+      await rest('POST', `/repos/${REPO}/issues/${it.number}/labels`, { labels: [DUPLICATE_LABEL] })
+      await rest('POST', `/repos/${REPO}/issues/${it.number}/comments`, { body: `Duplicate: ${why}.` })
+      console.log(`labelled #${it.number}: ${why}`)
+    } catch (e) { console.error(`label #${it.number}: ${e.message}`) }
   }
 }
 
