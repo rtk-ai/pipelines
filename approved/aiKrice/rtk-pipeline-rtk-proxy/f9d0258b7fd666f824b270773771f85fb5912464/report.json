@@ -1,0 +1,69 @@
+{
+  "rtk": "v1.0.1",
+  "key": "aiKrice/rtk-pipeline-rtk-proxy@f9d0258b7fd666f824b270773771f85fb5912464",
+  "checked_at": "2026-10-25T14:02:10.987Z",
+  "name": "rtk-proxy",
+  "tier": "safe",
+  "label": "pre-checked",
+  "size_bytes": 53,
+  "extends": [
+    "rtk:proxy"
+  ],
+  "rules": [],
+  "rule_summary": [],
+  "directives": [],
+  "egress": [],
+  "env_vars": [],
+  "tasks": [],
+  "classifiers": [],
+  "text_blocks": [],
+  "text_chars": 0,
+  "overrides": [],
+  "control_rules": {
+    "deny": 0,
+    "route": 0,
+    "rewrite": 0,
+    "passthrough": 0
+  },
+  "plugins_missing": [],
+  "reserved_methods": [],
+  "hidden_unicode": [],
+  "unknown_positions": [],
+  "warnings": [],
+  "refusals": [],
+  "caps": {
+    "perBlock": 1500,
+    "total": 4000
+  },
+  "toml_sha256": "101dd39581db2ddde6e7ff1cb3fdee1a8dc42023f12ab1bb87d64d498f7f5f3d",
+  "add_exit_code": 0,
+  "add_stdout": "\n┌─ You are installing a third-party pipeline ─────────────────────────────┐\n│ You are responsible for what it does: it can rewrite the commands your  │\n│ agent runs, filter and replace what it reads, inject instructions, and  │\n│ send content to any upstream endpoint it declares.                      │\n│                                                                         │\n│ Review what this one does:                                              │\n└─────────────────────────────────────────────────────────────────────────┘\n\n    0 rule(s), 0 directive(s)\n    extends: rtk:proxy\n\ntrying `rtk-proxy` silently — measured on your sessions, applied to nothing.\n  measure:   rtk pipeline eval rtk-proxy      (after a few sessions)\n  go live:   rtk pipeline promote rtk-proxy\n  discard:   rtk pipeline promote rtk-proxy --discard\n",
+  "add_stderr": "",
+  "repo": {
+    "stars": 3,
+    "forks": 0,
+    "parent": null,
+    "is_fork": false,
+    "pushedAt": "2026-10-14T08:33:21Z",
+    "createdAt": "2026-10-14T08:33:14Z",
+    "owner_created_at": "2013-01-22T23:26:51Z",
+    "description": "RTK pipeline · 34% of command output removed (self-reported) · rtk pipeline add github:aiKrice/rtk-pipeline-rtk-proxy",
+    "default_branch": "main"
+  },
+  "benchmark": null,
+  "self_reported": {
+    "headline": "34% of command output removed",
+    "rtk_version": "v1.0.0",
+    "measured_on": "2026-10-14",
+    "levers": [
+      {
+        "kind": "command_filtering",
+        "lever": "command filtering (rtk git/npm/…)",
+        "activity": 1172,
+        "activity_unit": "commands",
+        "removed_pct": 34
+      }
+    ]
+  },
+  "author_numbers_notes": []
+}
