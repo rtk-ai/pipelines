@@ -33,5 +33,15 @@
     "pr": "https://github.com/rtk-ai/pipelines/pull/15",
     "label": "pre-checked",
     "tier": "safe"
+  },
+  "aeppling/rtk-pipeline-laya-delegate@4b5bfde493b2291c39620e3122a20bd28ca19c07": {
+    "result": "rejected",
+    "at": "2026-11-25T21:44:08.828Z",
+    "reason": "rtk_refused: rtk: validation errors E001 E002"
+  },
+  "aeppling/rtk-pipeline-laya-tiered@01cb87e064f8d88e7742b94d2c0b724a28e981ed": {
+    "result": "rejected",
+    "at": "2026-11-25T21:44:08.828Z",
+    "reason": "rtk_refused: rtk: validation errors E001 E002"
   }
 }
