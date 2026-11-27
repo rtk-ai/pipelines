@@ -117,7 +117,7 @@ pipeline gets an update PR).
 [pipeline]
 name    = "laya-tiered"
 rtk_min = "1.3.0"
-note    = "local AI model: needs a good GPU"   # at most 40 characters
+note    = "runs on your CPU, needs 2 GB of free RAM"   # at most 40 characters
 ```
 
 One plain line someone must know before choosing the pipeline, such as the hardware it needs.
