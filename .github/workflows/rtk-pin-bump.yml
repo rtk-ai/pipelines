@@ -4,13 +4,22 @@ on:
     - cron: "23 6 * * 1"
   workflow_dispatch:
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 jobs:
   bump:
     runs-on: ubuntu-latest
     steps:
+      - name: Bot token (GitHub App, since the repo's Actions token may not open pull requests)
+        id: app
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
       - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app.outputs.token }}
       - name: Latest rtk release vs rtk.pin
         id: latest
         env:
@@ -18,6 +27,7 @@ jobs:
         run: |
           CUR="$(node -p "JSON.parse(require('fs').readFileSync('rtk.pin','utf8')).version")"
           TAG="$(gh release view --repo rtk-ai/rtk --json tagName --jq .tagName)"
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "unexpected rtk release tag: $TAG" >&2; exit 1; fi
           echo "current=$CUR" >> "$GITHUB_OUTPUT"; echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           if [ "$CUR" = "$TAG" ]; then echo "same=true" >> "$GITHUB_OUTPUT"; exit 0; fi
           gh release download "$TAG" --repo rtk-ai/rtk --pattern checksums.txt --output /tmp/checksums.txt
@@ -33,10 +43,16 @@ jobs:
       - name: Open PR
         if: steps.latest.outputs.same != 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          TAG: ${{ steps.latest.outputs.tag }}
+          CUR: ${{ steps.latest.outputs.current }}
         run: |
-          BR="chore/rtk-pin-${{ steps.latest.outputs.tag }}"
+          BR="chore/rtk-pin-$TAG"
           git checkout -B "$BR"
-          git -c user.name=rtk-pipelines-bot -c user.email=bot@rtk-ai.app commit -qam "chore: pin rtk ${{ steps.latest.outputs.tag }}"
+          git -c user.name=rtk-pipelines-bot -c user.email=bot@rtk-ai.app commit -qam "chore: pin rtk $TAG"
           git push -q -u origin "$BR" --force
-          gh pr create --title "chore: pin rtk ${{ steps.latest.outputs.tag }}" --body "Bumps rtk.pin from ${{ steps.latest.outputs.current }} to ${{ steps.latest.outputs.tag }} (sha256 from the release checksums.txt). Merge, then run the **recheck** workflow." || true
+          if [ "$(gh pr view "$BR" --json state --jq .state 2>/dev/null)" = "OPEN" ]; then
+            echo "PR for $BR already open"
+            exit 0
+          fi
+          gh pr create --head "$BR" --title "chore: pin rtk $TAG" --body "Bumps rtk.pin from $CUR to $TAG (sha256 from the release checksums.txt). Merge, then run the **recheck** workflow."
