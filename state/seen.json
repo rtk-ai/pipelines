@@ -43,5 +43,15 @@
     "result": "rejected",
     "at": "2026-11-25T21:44:08.828Z",
     "reason": "rtk_refused: rtk: validation errors E001 E002"
+  },
+  "aeppling/rtk-pipeline-laya-delegate@d4f1605b0f5c3d1b50c0936c3363e8feaf4eb69d": {
+    "result": "rejected",
+    "at": "2026-11-27T21:20:43.644Z",
+    "reason": "rtk_refused: rtk: validation errors E001 E002"
+  },
+  "aeppling/rtk-pipeline-laya-tiered@d0d0cfcbb5238ff8ae11dec61ebfa198eb5c3563": {
+    "result": "rejected",
+    "at": "2026-11-27T21:20:43.644Z",
+    "reason": "rtk_refused: rtk: validation errors E001 E002"
   }
 }
