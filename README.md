@@ -111,11 +111,28 @@ quality_pipeline = 1.0
 Commit it next to `pipeline.toml`; the next crawl of that commit picks it up (an already-listed
 pipeline gets an update PR).
 
+### `[pipeline] note` (authors)
+
+```toml
+[pipeline]
+name    = "laya-tiered"
+rtk_min = "1.3.0"
+note    = "local AI model: needs a good GPU"   # at most 40 characters
+```
+
+One plain line someone must know before choosing the pipeline, such as the hardware it needs.
+`/pipelines/index.json` carries it, and `rtk init` shows it at the end of the pipeline's line in
+its menu; `rtk init -g --pipeline <name>` prints it before installing. Longer text is cut to 40
+characters with `…`, control characters become spaces, and `rtk pipeline validate` warns (W029).
+rtk 1.2 and older refuse the key, so set `rtk_min` with it.
+
 ## Reviewing a PR
 
 Read the body top to bottom: rtk's own disclosure, every text block in full, the egress table,
-overrides. Tick the checklist in the PR template. Merge = listed. Close = never again for that
-commit (a new commit by the author gets a fresh PR). Repeated abuse → `blocklist.toml`.
+overrides. Read `[pipeline] note` in the file too: `rtk init` shows it to everyone choosing a
+pipeline, so it must state a requirement, not advertise. Tick the checklist in the PR template.
+Merge = listed. Close = never again for that commit (a new commit by the author gets a fresh PR).
+Repeated abuse → `blocklist.toml`.
 
 To pull a listed pipeline: add it to `revoked.toml` in a PR. The site drops it on the next deploy
 and `/pipelines/index.json` lists it under `revoked`.
