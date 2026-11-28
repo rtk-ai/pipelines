@@ -80,3 +80,10 @@ export function readSeen(path) {
   if (!existsSync(path)) return {}
   try { return JSON.parse(readFileSync(path, 'utf8')) } catch { return {} }
 }
+
+export function isSettled(entry, rtkVersion) {
+  if (!entry) return false
+  if (entry.result !== 'rejected') return true
+  if (typeof entry.rtk === 'string') return entry.rtk === rtkVersion
+  return !/(^|; )rtk_refused\b/.test(String(entry.reason ?? ''))
+}

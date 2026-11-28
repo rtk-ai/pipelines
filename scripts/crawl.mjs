@@ -16,7 +16,7 @@ import { execFileSync } from 'node:child_process'
 import { graphql, rest, fetchRaw } from './lib/github.mjs'
 import { assertOwner, assertRepo, assertSha, approvedDir, reviewBranch, short, rawUrl, benchmarkRawUrl, readmeRawUrl, GIST_ID_RE } from './lib/ids.mjs'
 import { parseBenchmarkToml, parseShareCard, BENCH_MAX_BYTES } from './lib/benchmark.mjs'
-import { loadBlocklist, loadReserved, loadRevoked, listApproved, readSeen, isRevoked } from './lib/policy.mjs'
+import { loadBlocklist, loadReserved, loadRevoked, listApproved, readSeen, isRevoked, isSettled } from './lib/policy.mjs'
 import { entryToml } from './lib/entry.mjs'
 import { precheck, loadRtkFacts } from './precheck.mjs'
 import { renderBody } from './report.mjs'
@@ -171,7 +171,7 @@ async function main() {
     const sha = node.defaultBranchRef?.target?.oid
     if (!sha || node.isPrivate || node.isArchived) { summary.skipped++; continue }
     const key = `${owner}/${repo}@${sha}`
-    if (seen[key]) { summary.skipped++; continue }
+    if (isSettled(seen[key], facts.version)) { summary.skipped++; continue }
     if (blocklist.has(owner.toLowerCase())) { mark(key, 'blocklisted'); continue }
     if (!node.object) { mark(key, 'no-pipeline'); continue }
     if (node.object.isBinary || node.object.byteSize > 64 * 1024) { mark(key, 'rejected', { reason: node.object.isBinary ? 'binary pipeline.toml' : `pipeline.toml is ${node.object.byteSize} bytes (> 64 KB)` }); summary.rejected++; continue }
@@ -196,7 +196,7 @@ async function main() {
     const owner = g.owner, repo = `gist-${g.gistId}`, sha = g.rev
     try { assertOwner(owner); assertRepo(repo); assertSha(sha); if (!GIST_ID_RE.test(g.gistId)) throw new Error('gist id') } catch { continue }
     const key = `gist/${g.gistId}@${sha}`
-    if (seen[key]) { summary.skipped++; continue }
+    if (isSettled(seen[key], facts.version)) { summary.skipped++; continue }
     if (blocklist.has(owner.toLowerCase())) { mark(key, 'blocklisted'); continue }
     candidates.push({ source: 'gist', owner, repo, sha, key, url: g.rawUrl, gistId: g.gistId, gistFile: g.file.filename, issue: g.issue, repoFacts: { stars: 0, forks: 0, parent: null, owner_created_at: null, description: String(g.issue.title ?? '').slice(0, 300) } })
   }
@@ -216,7 +216,7 @@ async function main() {
     const report = precheck(blob.text, facts, { key: c.key, owner: c.owner, repo: c.repo, repoFacts: c.repoFacts, rtkBin: process.env.RTK_BIN, reserved })
     if (report.tier === 'refused') {
       const reason = report.refusals.map((r) => r.code + (r.detail ? `: ${r.detail}` : '')).join('; ').slice(0, 500)
-      mark(c.key, 'rejected', { reason })
+      mark(c.key, 'rejected', { reason, ...(report.refusals.some((r) => r.code === 'rtk_refused') ? { rtk: facts.version } : {}) })
       summary.rejected++
       console.log(`rejected ${c.key}: ${reason}`)
       if (c.issue && !DRY) {
