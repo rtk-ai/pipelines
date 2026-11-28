@@ -26,7 +26,8 @@ author: rtk pipeline share publish ──▶ github.com/<owner>/rtk-pipeline-<na
                       scripts/crawl.mjs: fetch pipeline.toml at the default-branch commit
                       scripts/precheck.mjs: stock rtk `pipeline add --shadow` in a throwaway HOME
                                           + structural analysis (analyze.mjs)
-                           ├─ refused ──▶ state/seen.json (never re-opened for that commit)
+                           ├─ refused ──▶ state/seen.json (never re-opened for that commit, except `rtk_refused`:
+                           │                checked again once rtk.pin names another rtk)
                            └─ else ─────▶ PR "review: <owner>/<repo> @ <sha7>"  labels: candidate + pre-checked|needs-reading
                                             │  validate-pr.yml: snapshot byte-identical upstream, precheck re-run, schemas
                                             │  a maintainer reads the PR body (rtk's disclosure, every text block, egress table) and merges
@@ -38,7 +39,7 @@ author: rtk pipeline share publish ──▶ github.com/<owner>/rtk-pipeline-<na
 
 | code | why |
 |---|---|
-| `rtk_refused` | the pinned `rtk pipeline add` exits non-zero: validation errors, `api_key_command`, no name |
+| `rtk_refused` | the pinned `rtk pipeline add` exits non-zero: validation errors, `api_key_command`, no name. The pinned rtk is recorded with the refusal, and the commit is checked again once `rtk.pin` names another rtk, so a file using a key only a newer rtk knows gets its review then |
 | `file_directive` | `[[directive]] file = …` can read any file on the installer's disk |
 | `key_command` / `secret_literal` / `secret_shape` | credential commands, inline keys, key-looking strings |
 | `plugins_missing` | a method rtk does not have = third-party native code |
